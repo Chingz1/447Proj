@@ -64,9 +64,8 @@ for i in courses:
 for i in rooms:
     roomList.append(Room(i[0], i[1]))
 
-# for i in roomList:
-#     print(i)
 
+roomList.sort(key = lambda room: room.cap)
 
 for i in spring2020.mw:
     for j in courseList:
