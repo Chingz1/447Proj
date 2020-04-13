@@ -1,6 +1,6 @@
 import pandas as pd
 import xlrd
-
+import sys
 
 class Course(object):
     shed = False
@@ -38,7 +38,7 @@ class Schedule(object):
     solution = [[], [], [], [], []]
 
 
-file = "ClassRoom.xlsx"
+file = sys.argv[1]
 dataClasses = pd.read_excel(file, sheet_name='Schedule')  # reading file
 dataRooms = pd.read_excel(file, sheet_name='Capacity')  # reading file
 
