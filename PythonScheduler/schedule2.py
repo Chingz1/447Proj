@@ -1,3 +1,5 @@
+# File description: Scheduler that takes in classes and rooms and creates a schedule
+# Takes in 2 arguments: 1st arg - input xlsx file, 2nd arg - output csv file name
 import pandas as pd
 import xlrd
 import sys
@@ -149,3 +151,29 @@ print("Unscheduled:")
 for i in courseList:
     if (not (i.shed)):
         print(i)
+
+# making a list that formats output info
+output_list = []
+for solution in spring2020.solution:
+    for i in solution:
+        for every in i.keys():
+            if str(every.ver) == 'nan':
+                version = ""
+            else:
+                version = str(every.ver)
+            line = str(every.subject)+ " " + str(every.course) + "," + str(every.title) + "," + version + "," + str(every.sec) + ",\"" + every.professor + "\"," + str(every.cap) + "," + every.time + "," + str(i[every]) + ",scheduled"
+            print(line)
+            output_list.append(line)
+# adding unscheduled courses to the output info list
+for i in courseList:
+    if (not (i.shed)):
+        line = str(every.subject)+ " " + str(every.course) + "," + str(every.title) + "," + str(every.ver) + "," + str(every.sec) + ",\"" + every.professor + "\"," + str(every.cap) + "," + every.time + "," + ",unscheduled"
+        output_list.append(line)
+# writing to output csv file that the user specifies as the second argument
+outfile = open(sys.argv[2],'w')
+outfile.write("Course,Title,Version,Section,Professor,Capacity,Time,Room,Status")
+outfile.write('\n')
+for i in output_list:
+    outfile.write(i)
+    outfile.write('\n')
+outfile.close()
