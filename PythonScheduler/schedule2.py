@@ -161,7 +161,7 @@ for solution in spring2020.solution:
                 version = ""
             else:
                 version = str(every.ver)
-            line = str(every.subject)+ " " + str(every.course) + "," + str(every.title) + "," + version + "," + str(every.sec) + ",\"" + every.professor + "\"," + str(every.cap) + "," + every.time + "," + str(i[every]) + ",scheduled"
+            line = str(every.subject)+ " " + str(every.course) + "," + str(every.title) + "," + version + "," + str(every.sec) + ",\"" + every.professor + "\"," + str(every.cap) + "," + every.time + ",\'" + str(i[every]) + "\',scheduled"
             print(line)
             output_list.append(line)
 # adding unscheduled courses to the output info list
