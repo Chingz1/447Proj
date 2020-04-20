@@ -20,8 +20,8 @@ class Page1(Page):
 def generate():
     #os.system('python3 schedule2.py ClassRoom.xlsx output.csv')
     global G_out
-    output= sub.run(['python3','schedule2.py','ClassRoom.xlsx','output.csv'], check=True,capture_output=True).stdout
-    output= str(output)[2:]
+    output = sub.run(['python3', 'schedule2.py', 'ClassRoom.xlsx', 'output.csv'], check=True, capture_output = True).stdout
+    output = str(output)[2:]
     G_out = output.split('\\n')
     #x = sub.check_output(['python3','schedule2.py','ClassRoom.xlsx','output.csv'])
     #sys.stdout = Std_redirector(text)
