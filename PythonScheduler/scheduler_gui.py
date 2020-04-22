@@ -20,6 +20,9 @@ class Page1(Page):
 def generate():
     #os.system('python3 schedule2.py ClassRoom.xlsx output.csv')
     global G_out
+    if not path.exists('ClassRoom.xlsx') or not path.exists('output.csv'):
+        raise ImportError('Please enter a classroom file (.xlsx) followed by an output file in the command line.')
+        
     output= sub.run(['python3','schedule2.py','ClassRoom.xlsx','output.csv'], check=True,capture_output=True).stdout
     output= str(output)[2:]
     G_out = output.split('\\n')
