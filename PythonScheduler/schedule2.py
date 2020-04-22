@@ -28,7 +28,7 @@ class Course(object):
 class Room(object):
     # bool representing if room is in use or not false by default and is reset for every time slot
     taken = False
-
+    hours = 0
     # room constructor
     def __init__(self, name, cap):
         self.name = name
@@ -103,11 +103,13 @@ for i in spring2020.mw:
                     # mark rom as taken and course as scheduled
                     j.shed = True
                     k.taken = True
+                    k.hours += 2.5
                     # add course and room to solution list for monday and wednesday (added as dictionary)
                     spring2020.solution[0].append({j: k})
                     spring2020.solution[2].append({j: k})
                     # if course is also scheduled for friday add to solution list for friday
                     if ("MWF" in j.time) or ("mwf" in j.time):
+                        k.hours += 1.25
                         spring2020.solution[4].append({j: k})
     # loop over all rooms and reset taken value for next timeslot
     for t in roomList:
@@ -120,6 +122,7 @@ for i in spring2020.tt:
                 if (j.cap <= k.cap) and not (k.taken) and not (j.shed):
                     j.shed = True
                     k.taken = True
+                    k.hours += 2.5
                     spring2020.solution[1].append({j: k})
                     spring2020.solution[3].append({j: k})
     for t in roomList:
@@ -162,7 +165,7 @@ for solution in spring2020.solution:
             else:
                 version = str(every.ver)
             line = str(every.subject)+ " " + str(every.course) + "," + str(every.title) + "," + version + "," + str(every.sec) + ",\"" + every.professor + "\"," + str(every.cap) + "," + every.time + ",\"" + str(i[every]) + "\",scheduled"
-            print(line)
+
             output_list.append(line)
 # adding unscheduled courses to the output info list
 for i in courseList:
