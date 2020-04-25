@@ -1,15 +1,14 @@
 # File description: Scheduler that takes in classes and rooms and creates a schedule
-# Takes in 2 arguments: 1st arg - input xlsx file, 2nd arg - output csv file name
+# Takes in 2 arguments: 1st arg - input xlsx file, 2nd arg - output xlsx file name
 # testing
 import pandas as pd
 import xlrd
 import sys
+import xlsxwriter
 
 
 # Course object
 class Course(object):
-    # bool representing if course has been scheduled or not set to False by default
-    shed = False
 
     # Course constructor
     def __init__(self, subject, course, title, ver, sec, professor, time, cap):
@@ -21,10 +20,14 @@ class Course(object):
         self.professor = professor
         self.time = time
         self.cap = cap
+        # list of 3 possible alternatives
+        self.alt = []
+        # bool representing if course has been scheduled or not set to False by default
+        self.shed = False
 
     # course object print format
     def __repr__(self):
-        return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.cap) + " " + self.time
+        return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.cap)
 
 
 # room object
@@ -55,6 +58,81 @@ class Schedule(object):
 
     #  1 X 5 2D array that hold final solution each internal array representing a day of the week
     solution = [[], [], [], [], []]
+    unScheduled = []
+
+
+# generate_output: creates an xlsx output file that contains the information of the scheduled and unscheduled classes
+# Input: A Schedule object, a list of Course objects
+# Output: None
+def generate_output(schedule, courses):
+    # making a list that formats output info
+    output_list = []
+    alt_list = []
+
+    # save scheduled courses as strings
+    for solution in schedule.solution:
+        for i in solution:
+            for every in i.keys():
+                if str(every.ver) == 'nan':
+                    version = ""
+                else:
+                    version = every.ver
+                temp = [every.subject + " " + str(every.course), every.title, version, every.sec, every.professor,
+                        every.cap, every.time, str(i[every]), "scheduled"]
+                output_list.append(temp)
+
+    # adding unscheduled courses to the output and alt info list as strings
+    for i in courses:
+        if (not (i.shed)):
+            if str(i.ver) == 'nan':
+                version = ""
+            else:
+                version = i.ver
+        
+            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, i.time, "",
+                    "unscheduled"]
+            output_list.append(temp)
+
+            temp = [i.subject + " " + str(i.course) + i.title + str(i.sec) + i.professor]
+            alt_list.append(temp)
+
+
+    # writing to output excel workbook file that the user specifies as the second argument
+    out_workbook = xlsxwriter.Workbook(sys.argv[2])
+    # create sheet and header schedule
+    scheduleSheet = out_workbook.add_worksheet('Schedule')
+    Sheader = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Time", "Room", "Status"]
+    # add schedule
+    for i in range(len(output_list)):
+        for j in range(len(output_list[i])):
+            if i == 0:
+                scheduleSheet.write(i, j, Sheader[j])
+
+            else:
+                scheduleSheet.write(i, j, output_list[i][j])
+
+    # create alternatives sheet and header
+    altSheet = out_workbook.add_worksheet('Alternatives')
+    Aheader = ["course", "alt1", "alt2", "alt3"]
+
+    # add alternatives
+    for i in range(len(alt_list)):
+        for j in range(len(Aheader)):
+            if i == 0:
+                altSheet.write(i, j, Aheader[j])
+
+            elif j == 0:
+
+                altSheet.write(i, j, alt_list[i][j])
+            else:
+
+                if len(spring2020.unScheduled[i].alt) != 0:
+                    altSheet.write(i,j, str(spring2020.unScheduled[i].alt[j-1]))
+                else:
+                    altSheet.write(i, j,"No alternatives")
+
+    # close workbook
+    out_workbook.close()
 
 
 # use inline command holding the file name
@@ -80,15 +158,15 @@ for i in dataClasses.Time:
 
     # if statement to separate slots based on days and to avoid repeats
     if (("mw" in i) or ("MW" in i)) and not (i in spring2020.mw):
-        spring2020.mw.append(i)
+        spring2020.mw.append(i.lower())
     if (("tt" in i) or ("TT" in i)) and not (i in spring2020.tt):
-        spring2020.tt.append(i)
+        spring2020.tt.append(i.lower())
     if (("MWF" in i) or ("mwf" in i)) and not (i in spring2020.mwf):
-        spring2020.mwf.append(i)
+        spring2020.mwf.append(i.lower())
 
 # create courses and add to Course list
 for i in courses:
-    courseList.append(Course(i[0], i[1], i[2], i[3], i[4], i[5], i[6], i[7]))
+    courseList.append(Course(i[0], i[1], i[2], i[3], i[4], i[5], i[6].lower(), i[7]))
 
 # create rooms and add to room list
 for i in rooms:
@@ -102,7 +180,7 @@ for i in spring2020.mw:
     # loop all courses
     for j in courseList:
         # if the course time is for monday/wednesday or monday/wednesday/friday (checking for upper and lower case)
-        if (j.time == i) or (j.time.upper() == i) or ("MWF" in j.time) or ("mwf" in j.time):
+        if j.time == i or "mwf" in j.time:
             # loop through rooms
             for k in roomList:
                 # if the rooms cap is suitable and the room is not taken for the time slot and the course is not scheduled
@@ -116,7 +194,7 @@ for i in spring2020.mw:
                     spring2020.solution[0].append({j: k})
                     spring2020.solution[2].append({j: k})
                     # if course is also scheduled for friday add to solution list for friday
-                    if ("MWF" in j.time) or ("mwf" in j.time):
+                    if "mwf" in j.time:
                         k.hours += 1.25
                         spring2020.solution[4].append({j: k})
     # loop over all rooms and reset taken value for next time slot
@@ -128,7 +206,7 @@ for i in spring2020.mw:
 # same procedure as above loop but for time slots available tuesday and thursday
 for i in spring2020.tt:
     for j in courseList:
-        if (j.time == i) or (j.time.upper() == i):
+        if j.time == i:
             for k in roomList:
                 if (j.cap <= k.cap) and not (k.taken) and not (j.shed):
                     j.shed = True
@@ -140,6 +218,10 @@ for i in spring2020.tt:
         if not t.taken:
             spring2020.freeSlots.append({i: t})
         t.taken = False
+
+for i in courseList:
+    if not i.shed:
+        spring2020.unScheduled.append(i)
 
 # print solution list for mondays
 print("Monday:")
@@ -164,35 +246,25 @@ for i in spring2020.solution[4]:
 # print any unscheduled courses
 print("Unscheduled:")
 # loop over course list and check shed bool
-for i in courseList:
-    if not i.shed:
-        print(i)
+for i in spring2020.unScheduled:
+    print(i)
 
-# making a list that formats output info
-output_list = []
-for solution in spring2020.solution:
-    for i in solution:
-        for every in i.keys():
-            if str(every.ver) == 'nan':
-                version = ""
-            else:
-                version = str(every.ver)
-            line = str(every.subject) + " " + str(every.course) + "," + str(every.title) + "," + version + "," + str(
-                every.sec) + ",\"" + every.professor + "\"," + str(every.cap) + "," + every.time + ",\"" + str(
-                i[every]) + "\",scheduled"
 
-            output_list.append(line)
-# adding unscheduled courses to the output info list
-for i in courseList:
-    if not i.shed:
-        line = str(every.subject) + " " + str(every.course) + "," + str(every.title) + "," + str(every.ver) + "," + str(
-            every.sec) + ",\"" + every.professor + "\"," + str(every.cap) + "," + every.time + "," + ",unscheduled"
-        output_list.append(line)
-# writing to output csv file that the user specifies as the second argument
-outfile = open(sys.argv[2], 'w')
-outfile.write("Course,Title,Version,Section,Professor,Capacity,Time,Room,Status")
-outfile.write('\n')
-for i in output_list:
-    outfile.write(i)
-    outfile.write('\n')
-outfile.close()
+# loop over unscheduled classes
+for course in spring2020.unScheduled:
+    # loop over available classes
+    for slots in spring2020.freeSlots:
+        # for time slots in free spaces
+        for keys in slots:
+            # try and fit into the same days as professor originally asked for
+            if course.time == keys and course.cap <= slots[keys].cap:
+                course.alt.append(slots)
+            # if not fit into first slot found
+            elif slots[keys].cap >= course.cap:
+                course.alt.append(slots)
+        # limit to 3 alternatives max
+        if len(course.alt) > 2:
+            break
+
+
+generate_output(spring2020, courseList)
