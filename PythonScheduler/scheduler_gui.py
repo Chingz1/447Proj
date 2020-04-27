@@ -122,7 +122,9 @@ def go(page, inF, outF):
 
         root.deiconify()  # Unhides the root window
         page.destroy()  # Removes the toplevel window
-
+      
+    else:
+        print("Please enter a .xlsx classroom file and a blank .xlsx ouput file.")
 
 def quit_top(top, root):
     top.destroy()  # Removes the toplevel window
