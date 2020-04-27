@@ -1,7 +1,10 @@
+# File description: Scheduler that takes in classes and rooms and creates a schedule
+# Takes in 2 arguments: 1st arg - input xlsx file, 2nd arg - output csv file name
 import pandas as pd
 import xlrd
 import sys
-
+import matplotlib.pyplot as plt
+from collections import Counter
 # Course object
 class Course(object):
     # bool representing if course has been scheduled or not set to False by default
@@ -123,7 +126,7 @@ for i in spring2020.tt:
     for t in roomList:
         t.taken = False
 
-# print solution list for mondays
+#print solution list for mondays
 print("Monday:")
 for i in spring2020.solution[0]:
     print(i)
@@ -143,9 +146,84 @@ for i in spring2020.solution[3]:
 print("Friday:")
 for i in spring2020.solution[4]:
     print(i)
-# print any unscheduled courses
+#print any unscheduled courses
 print("Unscheduled:")
-# loop over course list and check shed bool
+#loop over course list and check shed bool
 for i in courseList:
     if (not (i.shed)):
         print(i)
+
+# making a list that formats output info
+output_list = []
+for solution in spring2020.solution:
+    for i in solution:
+        for every in i.keys():
+            if str(every.ver) == 'nan':
+                version = ""
+            else:
+                version = str(every.ver)
+            line = str(every.subject)+ " " + str(every.course) + "," + str(every.title) + "," + version + "," + str(every.sec) + ",\"" + every.professor + "\"," + str(every.cap) + "," + every.time + ",\"" + str(i[every]) + "\",scheduled"
+            #print(line)
+            output_list.append(line)
+# adding unscheduled courses to the output info list
+# for i in courseList:
+#     if (not (i.shed)):
+#         line = str(every.subject)+ " " + str(every.course) + "," + str(every.title) + "," + str(every.ver) + "," + str(every.sec) + ",\"" + every.professor + "\"," + str(every.cap) + "," + every.time + "," + ",unscheduled"
+#         output_list.append(line)
+# writing to output csv file that the user specifies as the second argument
+outfile = open(sys.argv[2],'w')
+outfile.write("Course,Title,Version,Section,Professor,Capacity,Time,Room,Status")
+outfile.write('\n')
+
+for i in output_list:
+    outfile.write(i)
+    outfile.write('\n')
+outfile.close()
+
+timesBooked = []
+timesStat = []
+for i in roomList:
+    info = [i, 0]
+    timesBooked.append(info)
+
+
+for x in timesBooked:
+    name = str(x[0])
+    count = int(x[1])
+    for y in output_list:
+        if name in str(y):
+            count+=1
+
+    x[1] = count
+
+days = ["mw", "tt", "MWF"]
+for i in days:
+    info = [i, 0]
+    timesStat.append(info)
+
+
+sizes= []
+for y in timesStat:
+    name = str(y[0])
+    count = int(y[1])
+    for z in output_list:
+        if name in str(z):
+            count += 1
+
+    y[1] = count
+    sizes.append(count)
+
+
+print(timesBooked)
+print(timesStat)
+
+patches, texts = plt.pie(sizes, shadow=True, startangle=90)
+plt.legend(patches, labels = days, loc="best")
+plt.axis("equal")
+plt.tight_layout()
+plt.show()
+
+#print(buildStat)
+
+
+
