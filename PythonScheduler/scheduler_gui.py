@@ -14,8 +14,6 @@ global outFile
 PIPE = '|'
 
 
-
-
 class Page(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs, bg='blue')
@@ -28,109 +26,118 @@ class Page1(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         label = tk.Label(self, text="Welcome to the Schedule Generator!")
-        label.pack(side = 'bottom', anchor=tk.S,fill="both", expand=True)
-        
+        label.pack(side='bottom', anchor=tk.S, fill="both", expand=True)
+
+
 def on_closing():
     if messagebox.askokcancel("Quit", "Hold up! Closing this window will quit the program. Do you want to quit?"):
         root.destroy()
         sys.exit()
+
+
 def generate():
     runthis = 'python3 schedule2.py ' + inFile + ' ' + outFile
     os.system(runthis)
     global G_out
-    #output= sub.run(['python3','schedule2.py',inFile,outFile], check=True,capture_output=True).stdout
+    # output= sub.run(['python3','schedule2.py',inFile,outFile], check=True,capture_output=True).stdout
 
-    #x = sub.check_output(['python3','schedule2.py','ClassRoom.xlsx','output.csv'])
-    #sys.stdout = Std_redirector(text)
-    #p = sub.Popen('python3 schedule2.py ClassRoom.xlsx output.csv',stdout=sub.PIPE,stderr=sub.PIPE)
-    #output, errors = p.communicate()
-    
+    # x = sub.check_output(['python3','schedule2.py','ClassRoom.xlsx','output.csv'])
+    # sys.stdout = Std_redirector(text)
+    # p = sub.Popen('python3 schedule2.py ClassRoom.xlsx output.csv',stdout=sub.PIPE,stderr=sub.PIPE)
+    # output, errors = p.communicate()
+
+
 def view_schedule():
     master = tk.Tk()
     scrollbar = tk.Scrollbar(master)
     master.title('View Schedule')
-    scrollbar.pack(side="right", fill = tk.Y, expand=False)
+    scrollbar.pack(side="right", fill=tk.Y, expand=False)
     listbox = tk.Listbox(master, yscrollcommand=scrollbar.set)
-    df = pd.read_excel(outFile,sheet_name='Schedule')
+    df = pd.read_excel(outFile, sheet_name='Schedule')
     sched_list = df.values.tolist()
-    print_out_list = {"Scheduled:":[], "Unscheduled:":[]}
-    
+    print_out_list = {"Scheduled:": [], "Unscheduled:": []}
+
     for i in range(len(sched_list)):
-        if sched_list[i][len(sched_list[i])-1].lower() == "scheduled" :
-            print_out_list["Scheduled:"].append(sched_list[i][:len(sched_list[i])-1])
+        if sched_list[i][len(sched_list[i]) - 1].lower() == "scheduled":
+            print_out_list["Scheduled:"].append(sched_list[i][:len(sched_list[i]) - 1])
         else:
-            print_out_list["Unscheduled:"].append(sched_list[i][:len(sched_list[i])-1])
+            print_out_list["Unscheduled:"].append(sched_list[i][:len(sched_list[i]) - 1])
     for key in print_out_list.keys():
-        listbox.insert(tk.END,key)
+        listbox.insert(tk.END, key)
         for i in range(len(print_out_list[key])):
             listbox.insert(tk.END, str(print_out_list[key][i]))
-        #listbox.insert(tk.END, '\n')
-    listbox.pack(side="left", fill=tk.BOTH,expand=True)
+        # listbox.insert(tk.END, '\n')
+    listbox.pack(side="left", fill=tk.BOTH, expand=True)
 
     scrollbar.config(command=listbox.yview_scroll)
-    
-    temp = tk.Button( text="test")
+
+    temp = tk.Button(text="test")
     master.mainloop()
+
+
 ''' DONT NEED ANYMORE
 class Page2(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         label = tk.Label(self, text="Show schedule here")
         label.pack(side="top", fill="both", expand=True)
-
 class Page3(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         label = tk.Label(self, text="Show statistics here")
         label.pack(side="top", fill="both", expand=True)
-
         '''
-def go(page,inF,outF):
+
+
+def go(page, inF, outF):
     global inFile
     global outFile
-    #do error checking for input and output files here
+    # do error checking for input and output files here
     inFile = str(inF.get())
     outFile = str(outF.get())
-    if ".xlsx" in inF.get() and ".xlsx" in outF.get(): #Checks whether input and output files are correctly formatted
+    if ".xlsx" in inF.get() and ".xlsx" in outF.get():  # Checks whether input and output files are correctly formatted
         if os.path.isfile(inFile):
-            root.deiconify() #Unhides the root window
-            page.destroy() #Removes the toplevel window
+            root.deiconify()  # Unhides the root window
+            page.destroy()  # Removes the toplevel window
         else:
             messagebox.showerror("File Error", "Input file could not be found.")
     else:
         messagebox.showerror("File Error", "Both the input file and output file need to be xlsx files.")
-def quit_top(top,root):
-    top.destroy() #Removes the toplevel window
-    root.destroy() #Removes the hidden root window
-    sys.exit() #Ends the script
-        
+
+
+def quit_top(top, root):
+    top.destroy()  # Removes the toplevel window
+    root.destroy()  # Removes the hidden root window
+    sys.exit()  # Ends the script
+
+
 class MainView(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
-        #p1 = Page1(self)
-        #p2 = Page2(self)
-        #p3 = Page3(self)
-        #buttonframe = tk.Frame(self)
+        # p1 = Page1(self)
+        # p2 = Page2(self)
+        # p3 = Page3(self)
+        # buttonframe = tk.Frame(self)
 
         container = tk.Frame(self)
         container.configure(bg='#99badd')
-        #buttonframe.configure(bg='#99badd')
-        #buttonframe.pack(side="top", fill="x", expand=False)
+        # buttonframe.configure(bg='#99badd')
+        # buttonframe.pack(side="top", fill="x", expand=False)
 
-        #p1.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-        #p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-        #p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        # p1.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        # p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        # p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
 
-        b1 = tk.Button(container, text="Generate Schedule", command=generate,highlightthickness=0)
-        label1 = tk.Label(container, text="Welcome to the Scheduler!",bg='#99badd',font=("Helvetica", 32))
-        
-        b2 = tk.Button(container, text="View Schedule", command=view_schedule,highlightthickness=0)
-        b3 = tk.Button(container, text="View Statistics",highlightthickness=0)#, command=p3.lift)
+        b1 = tk.Button(container, text="Generate Schedule", command=generate, highlightthickness=0)
+        label1 = tk.Label(container, text="Welcome to the Scheduler!", bg='#99badd', font=("Helvetica", 32))
 
-        label1.pack(side="top",anchor=tk.N, pady=100)
-        b1.pack(side="top",pady=10)
-        b2.pack(side="left", anchor=tk.S,padx=5)
-        b3.pack(side="right",anchor=tk.S,padx=5)
+        b2 = tk.Button(container, text="View Schedule", command=view_schedule, highlightthickness=0)
+        b3 = tk.Button(container, text="View Statistics", highlightthickness=0)  # , command=p3.lift)
+
+        label1.pack(side="top", anchor=tk.N, pady=100)
+        b1.pack(side="top", pady=10)
+        b2.pack(side="left", anchor=tk.S, padx=5)
+        b3.pack(side="right", anchor=tk.S, padx=5)
         container.pack(side="top", fill="both", expand=True)
 
 
@@ -144,7 +151,6 @@ class MainView(tk.Frame):
                 steps = width
         if isinstance(from_color, basestring):
             from_color = hex2rgb(from_color)
-
         if isinstance(to_color, basestring):
             to_color = hex2rgb(to_color)
         r,g,b = from_color
@@ -154,9 +160,7 @@ class MainView(tk.Frame):
         if orient == HORIZONTAL:
             if height is None:
                 raise ValueError("height can not be None")
-
             self.configure(height=height)
-
             if width is not None:
                 self.configure(width=width)
             img_height = height
@@ -172,12 +176,10 @@ class MainView(tk.Frame):
             if width is None:
                 raise ValueError("width can not be None")
             self.configure(width=width)
-
             if height is not None:
                 self.configure(height=height)
             img_height = self.winfo_screenheight()
             img_width = width
-
             image = Image.new("RGB", (img_width, img_height), "#FFFFFF")
             draw = ImageDraw.Draw(image)
             for i in range(steps):
@@ -185,7 +187,6 @@ class MainView(tk.Frame):
                 x0 = int(float(img_width * i)/steps)
                 x1 = int(float(img_width * (i+1))/steps)
                 draw.rectangle((x0, 0, x1, img_height), fill=(int(r),int(g),int(b)))
-
         self._gradient_photoimage = ImageTk.PhotoImage(image)
         self.create_image(0, 0, anchor=NW, image=self._gradient_photoimage)
 '''
@@ -198,24 +199,26 @@ if __name__ == "__main__":
     entry.title('Start Up')
     inputFile = ''
     ouputFile = ''
-    tk.Label(entry, text="Input file:",bg='#99badd').pack(side='left',padx=5)
-    entry.bind('<Return>', lambda e: go(entry,inputFile,outputFile))
+    tk.Label(entry, text="Input file:", bg='#99badd').pack(side='left', padx=5)
+    entry.bind('<Return>', lambda e: go(entry, inputFile, outputFile))
     inputFile = tk.Entry(entry)
     inputFile.config(highlightthickness=0)
     inputFile.pack(side='left')
-    tk.Label(entry, text="Output file:",bg='#99badd').pack(side='left')
+    tk.Label(entry, text="Output file:", bg='#99badd').pack(side='left')
     outputFile = tk.Entry(entry)
     outputFile.config(highlightthickness=0)
     outputFile.pack(side='left')
-    button1 = tk.Button(entry, text="Generate", command=lambda:go(entry,inputFile,outputFile),bg='black',fg="white",relief=tk.RAISED) #keep going button
+    button1 = tk.Button(entry, text="Generate", command=lambda: go(entry, inputFile, outputFile), bg='black',
+                        fg="white", relief=tk.RAISED)  # keep going button
     button1.config(highlightthickness=0)
-    button2 = tk.Button(entry, text="Quit", command=lambda:quit_top(entry,root),bg='black',fg='white',relief=tk.RAISED) #quit button
+    button2 = tk.Button(entry, text="Quit", command=lambda: quit_top(entry, root), bg='black', fg='white',
+                        relief=tk.RAISED)  # quit button
     button2.config(highlightthickness=0)
-    #epage = EntryPage(entry)
+    # epage = EntryPage(entry)
     button1.pack(side='left')
     button2.pack(side='left')
     root.withdraw()
-   # bg_frame = GradientFrame(root, from_color="#000000", to_color="#E74C3C", height=100)
+    # bg_frame = GradientFrame(root, from_color="#000000", to_color="#E74C3C", height=100)
 
     main = MainView(root)
     main.pack(side="top", fill="both", expand=True)
