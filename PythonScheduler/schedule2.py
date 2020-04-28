@@ -134,45 +134,6 @@ def generate_output(schedule, courses):
     # close workbook
     out_workbook.close()
 
-#generate_output: creates an xlsx output file that contains the information of the scheduled and unscheduled classes
-#Input: A Schedule object, a list of Course objects
-#Output: None
-def generate_output(schedule, courses):
-    # making a list that formats output info
-    output_list = []
-    for solution in schedule.solution:
-        for i in solution:
-            for every in i.keys():
-                if str(every.ver) == 'nan':
-                    version = ""
-                else:
-                    version = every.ver
-                temp = [every.subject + " " + str(every.course), every.title, version, every.sec, every.professor,every.cap, every.time, str(i[every]), "scheduled"]
-                if temp not in output_list:
-                    output_list.append(temp)
-
-    # adding unscheduled courses to the output info list
-    for i in courses:
-        if (not (i.shed)):
-            if str(i.ver) == 'nan':
-                version = ""
-            else:
-                version = i.ver
-            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor,i.cap, i.time, "", "unscheduled"]
-            if temp not in output_list:
-                output_list.append(temp)
-    # writing to output excel workbook file that the user specifies as the second argument
-    out_workbook = xlsxwriter.Workbook(sys.argv[2])
-    worksheet_1 = out_workbook.add_worksheet('Schedule')
-    header = ["Course","Title","Version","Section","Professor","Capacity","Time","Room","Status"]
-    for i in range(len(output_list)):
-        for j in range(len(output_list[i])):
-            if i == 0:
-                worksheet_1.write(i,j,header[j])
-            else:
-                worksheet_1.write(i,j, output_list[i][j])
-
-    out_workbook.close()
 
 # use inline command holding the file name
 file = sys.argv[1]
@@ -284,7 +245,6 @@ for i in spring2020.solution[4]:
 # print any unscheduled courses
 print("Unscheduled:")
 # loop over course list and check shed bool
-
 for i in spring2020.unScheduled:
     print(i)
 
@@ -308,9 +268,6 @@ for course in spring2020.unScheduled:
 
 generate_output(spring2020, courseList)
 
-for i in courseList:
-    if (not (i.shed)):
-        print(i)
-generate_output(spring2020, courseList)
+
 
 
