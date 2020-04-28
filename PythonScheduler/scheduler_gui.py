@@ -1,8 +1,11 @@
 # from tkinter import *
 import os
 import tkinter as tk
+import tkinter.font as font
+from tkinter import messagebox
 import subprocess as sub
 import sys
+<<<<<<< HEAD
 # import xlrd
 import pandas as pd
 
@@ -39,6 +42,15 @@ except NameError:
     return tuple(int(v, 16) for v in (r, g, b))
 """
 
+=======
+#import xlrd
+import pandas as pd
+global G_out
+global inFile
+global outFile
+PIPE ='|'
+>>>>>>> anna_branch
+
 
 class Page(tk.Frame):
     def __init__(self, *args, **kwargs):
@@ -52,6 +64,7 @@ class Page1(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         label = tk.Label(self, text="Welcome to the Schedule Generator!")
+<<<<<<< HEAD
         label.pack(side="top", fill="both", expand=True)
 
 
@@ -67,10 +80,28 @@ def generate():
     # output, errors = p.communicate()
 
 
-def view_schedule():
+=======
+        label.pack(side = 'bottom', anchor=tk.S,fill="both", expand=True)
+def on_closing():
+    if messagebox.askokcancel("Quit", "Hold up! Closing this window will quit the program. Do you want to quit?"):
+        root.destroy()
+        sys.exit()
+def generate():
+    runthis = 'python3 schedule2.py ' + inFile + ' ' + outFile
+    os.system(runthis)
     global G_out
+    #output= sub.run(['python3','schedule2.py',inFile,outFile], check=True,capture_output=True).stdout
+
+    #x = sub.check_output(['python3','schedule2.py','ClassRoom.xlsx','output.csv'])
+    #sys.stdout = Std_redirector(text)
+    #p = sub.Popen('python3 schedule2.py ClassRoom.xlsx output.csv',stdout=sub.PIPE,stderr=sub.PIPE)
+    #output, errors = p.communicate()
+    
+>>>>>>> anna_branch
+def view_schedule():
     master = tk.Tk()
     scrollbar = tk.Scrollbar(master)
+<<<<<<< HEAD
     scrollbar.pack(side="right", fill=tk.Y, expand=False)
     listbox = tk.Listbox(master, yscrollcommand=scrollbar.set)
     df = pd.read_excel(outFile, sheet_name='Schedule')
@@ -98,18 +129,48 @@ def view_schedule():
     master.mainloop()
 
 
+=======
+    master.title('View Schedule')
+    scrollbar.pack(side="right", fill = tk.Y, expand=False)
+    listbox = tk.Listbox(master, yscrollcommand=scrollbar.set)
+    df = pd.read_excel(outFile,sheet_name='Schedule')
+    sched_list = df.values.tolist()
+    print_out_list = {"Scheduled:":[], "Unscheduled:":[]}
+    
+    for i in range(len(sched_list)):
+        if sched_list[i][len(sched_list[i])-1].lower() == "scheduled" :
+            print_out_list["Scheduled:"].append(sched_list[i][:len(sched_list[i])-1])
+        else:
+            print_out_list["Unscheduled:"].append(sched_list[i][:len(sched_list[i])-1])
+    for key in print_out_list.keys():
+        listbox.insert(tk.END,key)
+        for i in range(len(print_out_list[key])):
+            listbox.insert(tk.END, str(print_out_list[key][i]))
+        #listbox.insert(tk.END, '\n')
+    listbox.pack(side="left", fill=tk.BOTH,expand=True)
+
+    scrollbar.config(command=listbox.yview_scroll)
+    
+    temp = tk.Button( text="test")
+    master.mainloop()
+''' DONT NEED ANYMORE
+>>>>>>> anna_branch
 class Page2(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         label = tk.Label(self, text="Show schedule here")
         label.pack(side="top", fill="both", expand=True)
+<<<<<<< HEAD
 
+=======
+>>>>>>> anna_branch
 
 class Page3(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         label = tk.Label(self, text="Show statistics here")
         label.pack(side="top", fill="both", expand=True)
+<<<<<<< HEAD
 
 
 def go(page, inF, outF):
@@ -140,23 +201,55 @@ class MainView(tk.Frame):
         p3 = Page3(self)
 
         buttonframe = tk.Frame(self)
+=======
+        '''
+def go(page,inF,outF):
+    global inFile
+    global outFile
+    #do error checking for input and output files here
+    inFile = str(inF.get())
+    outFile = str(outF.get())
+    if ".xlsx" in inF.get() and ".xlsx" in outF.get(): #Checks whether input and output files are correctly formatted
+        if os.path.isfile(inFile):
+            root.deiconify() #Unhides the root window
+            page.destroy() #Removes the toplevel window
+        else:
+            messagebox.showerror("File Error", "Input file could not be found.")
+    else:
+        messagebox.showerror("File Error", "Both the input file and output file need to be xlsx files.")
+def quit_top(top,root):
+    top.destroy() #Removes the toplevel window
+    root.destroy() #Removes the hidden root window
+    sys.exit() #Ends the script
+        
+class MainView(tk.Frame):
+    def __init__(self, *args, **kwargs):
+        tk.Frame.__init__(self, *args, **kwargs)
+        #p1 = Page1(self)
+        #p2 = Page2(self)
+        #p3 = Page3(self)
+        #buttonframe = tk.Frame(self)
+>>>>>>> anna_branch
         container = tk.Frame(self)
-        buttonframe.pack(side="top", fill="x", expand=False)
+        container.configure(bg='#99badd')
+        #buttonframe.configure(bg='#99badd')
+        #buttonframe.pack(side="top", fill="x", expand=False)
+
+        #p1.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        #p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+        #p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
+
+        b1 = tk.Button(container, text="Generate Schedule", command=generate,highlightthickness=0)
+        label1 = tk.Label(container, text="Welcome to the Scheduler!",bg='#99badd',font=("Helvetica", 32))
+        
+        b2 = tk.Button(container, text="View Schedule", command=view_schedule,highlightthickness=0)
+        b3 = tk.Button(container, text="View Statistics",highlightthickness=0)#, command=p3.lift)
+
+        label1.pack(side="top",anchor=tk.N, pady=100)
+        b1.pack(side="top",pady=10)
+        b2.pack(side="left", anchor=tk.S,padx=5)
+        b3.pack(side="right",anchor=tk.S,padx=5)
         container.pack(side="top", fill="both", expand=True)
-
-        p1.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-        p2.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-        p3.place(in_=container, x=0, y=0, relwidth=1, relheight=1)
-
-        b1 = tk.Button(buttonframe, text="Generate Schedule", command=generate)
-        b2 = tk.Button(buttonframe, text="View Schedule", command=view_schedule)
-        b3 = tk.Button(buttonframe, text="View Statistics", command=p3.lift)
-
-        b1.pack(side="left")
-        b2.pack(side="left")
-        b3.pack(side="left")
-
-        p1.show()
 
 
 '''class GradientFrame(Canvas):
@@ -216,6 +309,7 @@ class MainView(tk.Frame):
 '''
 if __name__ == "__main__":
     root = tk.Tk()
+<<<<<<< HEAD
     root.title('Main Menu')
     entry = tk.Toplevel(bg='#99badd')
     label1 = tk.Label(entry, text="Input file:", bg='#99badd').pack(side='left')
@@ -237,6 +331,33 @@ if __name__ == "__main__":
     button2.pack(side='left')
     root.withdraw()
     # bg_frame = GradientFrame(root, from_color="#000000", to_color="#E74C3C", height=100)
+=======
+    root.protocol("WM_DELETE_WINDOW", on_closing)
+    root.title('Main Menu')
+    entry = tk.Toplevel(bg='#99badd')
+    entry.protocol("WM_DELETE_WINDOW", on_closing)
+    entry.title('Start Up')
+    inputFile = ''
+    ouputFile = ''
+    tk.Label(entry, text="Input file:",bg='#99badd').pack(side='left',padx=5)
+    entry.bind('<Return>', lambda e: go(entry,inputFile,outputFile))
+    inputFile = tk.Entry(entry)
+    inputFile.config(highlightthickness=0)
+    inputFile.pack(side='left')
+    tk.Label(entry, text="Output file:",bg='#99badd').pack(side='left')
+    outputFile = tk.Entry(entry)
+    outputFile.config(highlightthickness=0)
+    outputFile.pack(side='left')
+    button1 = tk.Button(entry, text="Generate", command=lambda:go(entry,inputFile,outputFile),bg='black',fg="white",relief=tk.RAISED) #keep going button
+    button1.config(highlightthickness=0)
+    button2 = tk.Button(entry, text="Quit", command=lambda:quit_top(entry,root),bg='black',fg='white',relief=tk.RAISED) #quit button
+    button2.config(highlightthickness=0)
+    #epage = EntryPage(entry)
+    button1.pack(side='left')
+    button2.pack(side='left')
+    root.withdraw()
+   # bg_frame = GradientFrame(root, from_color="#000000", to_color="#E74C3C", height=100)
+>>>>>>> anna_branch
 
     main = MainView(root)
     main.pack(side="top", fill="both", expand=True)
