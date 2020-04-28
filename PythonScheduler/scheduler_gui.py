@@ -5,7 +5,6 @@ import tkinter.font as font
 from tkinter import messagebox
 import subprocess as sub
 import sys
-<<<<<<< HEAD
 # import xlrd
 import pandas as pd
 
@@ -13,43 +12,8 @@ global G_out
 global inFile
 global outFile
 PIPE = '|'
-try:
-    from Tkinter import Canvas
-    from Tkconstants import *
-except ImportError:
-    from tkinter import Canvas
-    from tkinter.constants import *
 
-from PIL import Image, ImageDraw, ImageTk
 
-# Python 2/3 compatibility
-try:
-    basestring
-except NameError:
-    basestring = str
-
-"""def hex2rgb(str_rgb):
-    try:
-        rgb = str_rgb[1:]
-        if len(rgb) == 6:
-            r, g, b = rgb[0:2], rgb[2:4], rgb[4:6]
-        elif len(rgb) == 3:
-            r, g, b = rgb[0] * 2, rgb[1] * 2, rgb[2] * 2
-        else:
-            raise ValueError()
-    except:
-        raise ValueError("Invalid value %r provided for rgb color."% str_rgb)
-    return tuple(int(v, 16) for v in (r, g, b))
-"""
-
-=======
-#import xlrd
-import pandas as pd
-global G_out
-global inFile
-global outFile
-PIPE ='|'
->>>>>>> anna_branch
 
 
 class Page(tk.Frame):
@@ -64,24 +28,8 @@ class Page1(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         label = tk.Label(self, text="Welcome to the Schedule Generator!")
-<<<<<<< HEAD
-        label.pack(side="top", fill="both", expand=True)
-
-
-def generate():
-    # os.system('python3 schedule2.py ClassRoom.xlsx output.csv')
-    global G_out
-    output = sub.run(['python3', 'schedule2.py', inFile, outFile], check=True, capture_output=True).stdout
-    output = str(output)[2:]
-    G_out = output.split('\\n')
-    # x = sub.check_output(['python3','schedule2.py','ClassRoom.xlsx','output.csv'])
-    # sys.stdout = Std_redirector(text)
-    # p = sub.Popen('python3 schedule2.py ClassRoom.xlsx output.csv',stdout=sub.PIPE,stderr=sub.PIPE)
-    # output, errors = p.communicate()
-
-
-=======
         label.pack(side = 'bottom', anchor=tk.S,fill="both", expand=True)
+        
 def on_closing():
     if messagebox.askokcancel("Quit", "Hold up! Closing this window will quit the program. Do you want to quit?"):
         root.destroy()
@@ -97,39 +45,9 @@ def generate():
     #p = sub.Popen('python3 schedule2.py ClassRoom.xlsx output.csv',stdout=sub.PIPE,stderr=sub.PIPE)
     #output, errors = p.communicate()
     
->>>>>>> anna_branch
 def view_schedule():
     master = tk.Tk()
     scrollbar = tk.Scrollbar(master)
-<<<<<<< HEAD
-    scrollbar.pack(side="right", fill=tk.Y, expand=False)
-    listbox = tk.Listbox(master, yscrollcommand=scrollbar.set)
-    df = pd.read_excel(outFile, sheet_name='Schedule')
-    sched_list = df.values.tolist()
-    print_out_list = {"Scheduled:": [], "Unscheduled:": []}
-
-    for i in range(len(sched_list)):
-        if sched_list[i][len(sched_list[i]) - 1]:
-            print_out_list["Scheduled:"].append(sched_list[i][:len(sched_list[i]) - 1])
-        else:
-            print_out_list["Unscheduled:"].append(sched_list[i][:len(sched_list[i]) - 1])
-    for key in print_out_list.keys():
-        listbox.insert(tk.END, key)
-        for i in range(len(print_out_list[key])):
-            listbox.insert(tk.END, str(print_out_list[key][i]))
-        # listbox.insert(tk.END, '\n')
-    listbox.pack(side="left", fill=tk.BOTH, expand=True)
-
-    scrollbar.config(command=listbox.yview_scroll)
-
-    temp = tk.Button(text="test")
-    outputfile = open(outFile)
-
-    outputfile.close()
-    master.mainloop()
-
-
-=======
     master.title('View Schedule')
     scrollbar.pack(side="right", fill = tk.Y, expand=False)
     listbox = tk.Listbox(master, yscrollcommand=scrollbar.set)
@@ -154,54 +72,18 @@ def view_schedule():
     temp = tk.Button( text="test")
     master.mainloop()
 ''' DONT NEED ANYMORE
->>>>>>> anna_branch
 class Page2(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         label = tk.Label(self, text="Show schedule here")
         label.pack(side="top", fill="both", expand=True)
-<<<<<<< HEAD
-
-=======
->>>>>>> anna_branch
 
 class Page3(Page):
     def __init__(self, *args, **kwargs):
         Page.__init__(self, *args, **kwargs)
         label = tk.Label(self, text="Show statistics here")
         label.pack(side="top", fill="both", expand=True)
-<<<<<<< HEAD
 
-
-def go(page, inF, outF):
-    global inFile
-    global outFile
-    # do error checking for input and output files here
-    inFile = str(inF.get())
-    outFile = str(outF.get())
-    if "xlsx" in inF.get() and "xlsx" in outF.get():  # Checks whether input and output files are correctly formatted
-
-        root.deiconify()  # Unhides the root window
-        page.destroy()  # Removes the toplevel window
-      
-    else:
-        print("Please enter a .xlsx classroom file and a blank .xlsx ouput file.")
-
-def quit_top(top, root):
-    top.destroy()  # Removes the toplevel window
-    root.destroy()  # Removes the hidden root window
-    sys.exit()  # Ends the script
-
-
-class MainView(tk.Frame):
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs, bg='blue')
-        p1 = Page1(self)
-        p2 = Page2(self)
-        p3 = Page3(self)
-
-        buttonframe = tk.Frame(self)
-=======
         '''
 def go(page,inF,outF):
     global inFile
@@ -229,7 +111,7 @@ class MainView(tk.Frame):
         #p2 = Page2(self)
         #p3 = Page3(self)
         #buttonframe = tk.Frame(self)
->>>>>>> anna_branch
+
         container = tk.Frame(self)
         container.configure(bg='#99badd')
         #buttonframe.configure(bg='#99badd')
@@ -309,29 +191,6 @@ class MainView(tk.Frame):
 '''
 if __name__ == "__main__":
     root = tk.Tk()
-<<<<<<< HEAD
-    root.title('Main Menu')
-    entry = tk.Toplevel(bg='#99badd')
-    label1 = tk.Label(entry, text="Input file:", bg='#99badd').pack(side='left')
-    inputFile = tk.Entry(entry)
-    inputFile.config(highlightthickness=0)
-    inputFile.pack(side='left')
-    label2 = tk.Label(entry, text="Output file:", bg='#99badd').pack(side='left')
-    outputFile = tk.Entry(entry)
-    outputFile.config(highlightthickness=0)
-    outputFile.pack(side='left')
-    button1 = tk.Button(entry, text="Go", command=lambda: go(entry, inputFile, outputFile), bg='black',
-                        fg="white")  # keep going button
-    button1.config(highlightthickness=0)
-    button2 = tk.Button(entry, text="Quit", command=lambda: quit_top(entry, root), bg='black',
-                        fg='white')  # quit button
-    button2.config(highlightthickness=0)
-    # epage = EntryPage(entry)
-    button1.pack(side='left')
-    button2.pack(side='left')
-    root.withdraw()
-    # bg_frame = GradientFrame(root, from_color="#000000", to_color="#E74C3C", height=100)
-=======
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.title('Main Menu')
     entry = tk.Toplevel(bg='#99badd')
@@ -357,7 +216,6 @@ if __name__ == "__main__":
     button2.pack(side='left')
     root.withdraw()
    # bg_frame = GradientFrame(root, from_color="#000000", to_color="#E74C3C", height=100)
->>>>>>> anna_branch
 
     main = MainView(root)
     main.pack(side="top", fill="both", expand=True)
