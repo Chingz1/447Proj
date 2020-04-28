@@ -5,10 +5,6 @@ import pandas as pd
 import xlrd
 import sys
 import xlsxwriter
-<<<<<<< HEAD
-
-=======
->>>>>>> anna_branch
 
 # Course object
 class Course(object):
@@ -201,11 +197,7 @@ for i in dataClasses.Time:
         spring2020.mw.append(i.lower())
     if (("tt" in i) or ("TT" in i)) and not (i in spring2020.tt):
         spring2020.tt.append(i.lower())
-<<<<<<< HEAD
     if (("MWF" in i) or ("mwf" in i)) and not (i in spring2020.mwf):
-=======
-    if (("MWF" in i) or("mwf" in i)) and not (i in spring2020.mwf):
->>>>>>> anna_branch
         spring2020.mwf.append(i.lower())
 
 # create courses and add to Course list
@@ -290,33 +282,9 @@ for i in spring2020.solution[4]:
 # print any unscheduled courses
 print("Unscheduled:")
 # loop over course list and check shed bool
-<<<<<<< HEAD
-for i in spring2020.unScheduled:
-    print(i)
-
-
-# loop over unscheduled classes
-for course in spring2020.unScheduled:
-    # loop over available classes
-    for slots in spring2020.freeSlots:
-        # for time slots in free spaces
-        for keys in slots:
-            # try and fit into the same days as professor originally asked for
-            if course.time == keys and course.cap <= slots[keys].cap:
-                course.alt.append(slots)
-            # if not fit into first slot found
-            elif slots[keys].cap >= course.cap:
-                course.alt.append(slots)
-        # limit to 3 alternatives max
-        if len(course.alt) > 2:
-            break
-
-
-generate_output(spring2020, courseList)
-=======
 for i in courseList:
     if (not (i.shed)):
         print(i)
 generate_output(spring2020, courseList)
 #if __name__ == "__main__":
->>>>>>> anna_branch
+
