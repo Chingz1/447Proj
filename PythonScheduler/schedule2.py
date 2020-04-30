@@ -147,8 +147,14 @@ def generate_output(schedule, courses):
 file = sys.argv[1]
 
 # read in input file separated by sheets
-dataClasses = pd.read_excel(file, sheet_name='Schedule')# reading file
+try:
+    dataClasses = pd.read_excel(file, sheet_name='Schedule')# reading file
+except Exception:
+    print("Error: There is no table in your classroom file titled 'Schedule'.")
+try:
 dataRooms = pd.read_excel(file, sheet_name='Capacity')  # reading file
+except Exception:
+    print("Error: There is no table in your classroom file titled 'Capacity'.")
 
 # convert pandas data frame into raw values
 courses = dataClasses.values
