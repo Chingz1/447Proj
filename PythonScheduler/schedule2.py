@@ -3,16 +3,16 @@
 # testing
 import pandas as pd
 if "pd" not in dir():
-    raise ImportError("Pandas not imported")
+    raise ModuleNotFoundError("pandas import error")
 import xlrd
 if "xlrd" not in dir():
-    raise ImportError("xlrd not imported")
+    raise ModuleNotFoundError("xlrd import error")
 import sys
 if "sys" not in dir():
-    raise ImportError("sys not imported")
+    raise ModuleNotFoundError("sys import error")
 import xlsxwriter
 if "xlsxwriter" not in dir():
-    raise ImportError("xlsxwriter not imported")
+    raise ModuleNotFoundError("xlsxwriter import error")
 
 
 # Course object
