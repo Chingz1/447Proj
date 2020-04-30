@@ -2,9 +2,17 @@
 # Takes in 2 arguments: 1st arg - input xlsx file, 2nd arg - output xlsx file name
 # testing
 import pandas as pd
+if "pd" not in dir():
+    raise ImportError("Pandas not imported")
 import xlrd
+if "xlrd" not in dir():
+    raise ImportError("xlrd not imported")
 import sys
+if "sys" not in dir():
+    raise ImportError("sys not imported")
 import xlsxwriter
+if "xlsxwriter" not in dir():
+    raise ImportError("xlsxwriter not imported")
 
 
 # Course object
