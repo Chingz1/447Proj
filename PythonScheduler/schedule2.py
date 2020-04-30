@@ -152,7 +152,7 @@ try:
 except Exception:
     print("Error: There is no table in your classroom file titled 'Schedule'.")
 try:
-dataRooms = pd.read_excel(file, sheet_name='Capacity')  # reading file
+    dataRooms = pd.read_excel(file, sheet_name='Capacity')  # reading file
 except Exception:
     print("Error: There is no table in your classroom file titled 'Capacity'.")
 
