@@ -32,18 +32,22 @@ class Course(object):
         self.alt = []
         # bool representing if course has been scheduled or not set to False by default
         self.shed = False
+        self.room = None
 
     # course object print format
     def __repr__(self):
-        return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.cap)
+        if self.room is None:
+
+            return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.cap)
+        else:
+
+            return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.cap) + ", " + str(self.room)
 
 
 # room object
 class Room(object):
     # bool representing if room is in use or not false by default and is reset for every time slot
     taken = False
-    # usage hours for statistics
-    hours = 0
 
     # room constructor
     def __init__(self, name, cap):
@@ -54,6 +58,8 @@ class Room(object):
     def __repr__(self):
         return self.name
 
+    def __str__(self):
+        return self.name
 
 # schedule object
 class Schedule(object):
@@ -79,14 +85,13 @@ def generate_output(schedule, courses):
 
     # save scheduled courses as strings
     for solution in schedule.solution:
-        for i in solution:
-            for every in i.keys():
+        for every in solution:
                 if str(every.ver) == 'nan':
                     version = ""
                 else:
                     version = every.ver
                 temp = [every.subject + " " + str(every.course), every.title, version, every.sec, every.professor,
-                        every.cap, every.time, str(i[every]), "scheduled"]
+                        every.cap, every.time, str(every.room), "scheduled"]
                 output_list.append(temp)
 
     # adding unscheduled courses to the output and alt info list as strings
@@ -97,7 +102,7 @@ def generate_output(schedule, courses):
             else:
                 version = i.ver
         
-            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, i.time, "",
+            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "",
                     "unscheduled"]
             output_list.append(temp)
 
@@ -148,7 +153,7 @@ file = sys.argv[1]
 
 # read in input file separated by sheets
 try:
-    dataClasses = pd.read_excel(file, sheet_name='Schedule')# reading file
+    dataClasses = pd.read_excel(file, sheet_name='Schedule') # reading file
 except Exception:
     print("Error: There is no table in your classroom file titled 'Schedule'.")
 try:
@@ -200,16 +205,14 @@ for i in spring2020.mw:
                 if (j.cap <= k.cap) and not (k.taken) and not (j.shed):
                     # mark rom as taken and course as scheduled
                     j.shed = True
+                    j.room = k
                     k.taken = True
-                    # add usage to room
-                    k.hours += 2.5
                     # add course and room to solution list for monday and wednesday (added as dictionary)
-                    spring2020.solution[0].append({j: k})
-                    spring2020.solution[2].append({j: k})
+                    spring2020.solution[0].append(j)
+                    spring2020.solution[2].append(j)
                     # if course is also scheduled for friday add to solution list for friday
                     if "mwf" in j.time:
-                        k.hours += 1.25
-                        spring2020.solution[4].append({j: k})
+                        spring2020.solution[4].append(j)
     # loop over all rooms and reset taken value for next time slot
     for t in roomList:
         # if a room is not taken at a certain time save it for alternatives
@@ -223,10 +226,10 @@ for i in spring2020.tt:
             for k in roomList:
                 if (j.cap <= k.cap) and not (k.taken) and not (j.shed):
                     j.shed = True
+                    j.room = k
                     k.taken = True
-                    k.hours += 2.5
-                    spring2020.solution[1].append({j: k})
-                    spring2020.solution[3].append({j: k})
+                    spring2020.solution[1].append(j)
+                    spring2020.solution[3].append(j)
     for t in roomList:
         if not t.taken:
             spring2020.freeSlots.append({i: t})
@@ -278,7 +281,6 @@ for course in spring2020.unScheduled:
         # limit to 3 alternatives max
         if len(course.alt) > 2:
             break
-
 
 generate_output(spring2020, courseList)
 
