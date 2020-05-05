@@ -88,7 +88,6 @@ class Building(object):
         return self.name + " lat = " + str(self.lat) + "lang = " + str(self.long)
 
 
-
 # main: using a given input file creates the best possible schedule taking into account distance and capacity
 # Input: a .xlsx file containing a sheet for courses, rooms, and buildings
 # Output: a .xlsx file with the schedule, possible alternatives foe unscheduled classes, and statistics related to the schedule
@@ -246,7 +245,8 @@ def generate_output(schedule, courses):
                 version = every.ver
             temp = [every.subject + " " + str(every.course), every.title, version, every.sec, every.professor,
                     every.cap, every.time, str(every.room), "scheduled"]
-            output_list.append(temp)
+            if temp not in output_list:
+                output_list.append(temp)
 
     # adding unscheduled courses to the output and alt info list as strings
     for i in courses:
@@ -258,7 +258,8 @@ def generate_output(schedule, courses):
 
             temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "",
                     "unscheduled"]
-            output_list.append(temp)
+            if temp not in output_list:
+                output_list.append(temp)
 
             temp = [i.subject + " " + str(i.course) + i.title + str(i.sec) + i.professor]
             alt_list.append(temp)
