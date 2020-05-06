@@ -142,8 +142,8 @@ def calculateBuildingDistance (buildingName1, buildingName2):
 
 
 warningFile = "warning.txt"
-exampleCourse1 = Course("cmsc", "course1", "title", "ver", "sec", "professor1", "time", 10)
-exampleCourse2 = Course("cmpe", "course2", "title", "ver", "sec", "professor2", "time", 10)
+exampleCourse1 = Course("cmsc", "course1", "title1", "ver", "sec", "professor1", "time", 10)
+exampleCourse2 = Course("cmpe", "course2", "title2", "ver", "sec", "professor2", "time", 10)
 exampleRoom1 = Room("room1", 20, "building1")
 exampleRoom2 = Room("room2", 10, "building2")
 professorToBuilding = {"professor1" : "building1" , "professor2" : "building2"}
@@ -151,4 +151,4 @@ subjectToBuilding = {"cmsc" : "building1"}
 LARGESTDISTANCE = 500
 warningTextFile = "warning.txt"
 rooms = [exampleRoom1, exampleRoom2]
-print(calculateRoomWeights(exampleCourse1 , rooms , professorToBuilding, subjectToBuilding, LARGESTDISTANCE, warningTextFile))
+print(calculateRoomWeights(exampleCourse2 , rooms , professorToBuilding, subjectToBuilding, LARGESTDISTANCE, warningTextFile))

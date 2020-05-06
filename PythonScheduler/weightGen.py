@@ -21,8 +21,8 @@ def calculateRoomWeight(course, room, professorToBuilding, subjectToBuilding, LA
         return -1
     
     #Get professor distance
-    if (has_key(professorBuilding, course.professor)):                                                  
-        distFromProf = calculateBuildingDistance(professorBuilding[course.professor], room.building)        
+    if course.professor in professorToBuilding:                                                  
+        distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.building)        
     else :
         distFromProf = LARGESTDISTANCE                                                                  
         fo = open(warningTxt, "a")
@@ -30,8 +30,8 @@ def calculateRoomWeight(course, room, professorToBuilding, subjectToBuilding, LA
         fo.close()
         
     #Get subject distance
-    if (has_key(subjectBuilding, course.subject)):                                                       
-        distFromSubject = calculateBuildingDistance(subjectBuilding[course.subject], room.building)         
+    if course.subject in subjectToBuilding:                                                       
+        distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.building)         
         
     else:                                                                                                           
         distFromSubject = LARGESTDISTANCE
@@ -57,7 +57,7 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
     SUBJECTWEIGHTMUL = 1 
     PROFWEIGHTMUL = 5
 
-    roomWeights[len(rooms)]
+    roomWeights = [None] * len(rooms)
     i = 0
     
     #loop and get weights
@@ -69,8 +69,8 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
             continue
     
         #Get professor distance
-        if (has_key(professorBuilding, course.professor)):                                                  
-            distFromProf = calculateBuildingDistance(professorBuilding[course.professor], room.building)        
+        if course.professor in professorToBuilding:                                                  
+            distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.building)        
         else :
             distFromProf = LARGESTDISTANCE                                                                  
             fo = open(warningTxt, "a")
@@ -78,8 +78,8 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
             fo.close()
         
         #Get subject distance
-        if (has_key(subjectBuilding, course.subject)):                                                       
-            distFromSubject = calculateBuildingDistance(subjectBuilding[course.subject], room.building)         
+        if course.subject in subjectToBuilding:                                                       
+            distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.building)         
         
         else:                                                                                                            
             distFromSubject = LARGESTDISTANCE
@@ -99,4 +99,3 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
 
     return roomWeights                                                                                         
 #################### end of function
-
