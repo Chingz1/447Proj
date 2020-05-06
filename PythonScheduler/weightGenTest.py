@@ -57,7 +57,7 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
     SUBJECTWEIGHTMUL = 1 
     PROFWEIGHTMUL = 5
 
-    roomWeights[len(rooms)]
+    roomWeights = [None] * len(rooms)
     i = 0
     
     #loop and get weights
@@ -125,27 +125,30 @@ class Room(object):
     taken = False
 
     # room constructor
-    def __init__(self, name, cap):
+    def __init__(self, name, cap, building):
         self.name = name
         self.cap = cap
+        self.building = building
 
     # room object print format
     def __repr__(self):
         return self.name
 
-def calculateBuildingDistance (roomName1, roomName2):
-    if (roomName1 == roomName2):
+def calculateBuildingDistance (buildingName1, buildingName2):
+    if (buildingName1 == buildingName2):
         return 100
     else:
         return 350
+
+
 warningFile = "warning.txt"
 exampleCourse1 = Course("cmsc", "course1", "title", "ver", "sec", "professor1", "time", 10)
 exampleCourse2 = Course("cmpe", "course2", "title", "ver", "sec", "professor2", "time", 10)
-exampleRoom1 = Room("room1", 20)
-exampleRoom2 = Room("room2", 10)
+exampleRoom1 = Room("room1", 20, "building1")
+exampleRoom2 = Room("room2", 10, "building2")
 professorToBuilding = {"professor1" : "building1" , "professor2" : "building2"}
 subjectToBuilding = {"cmsc" : "building1"}
 LARGESTDISTANCE = 500
 warningTextFile = "warning.txt"
 rooms = [exampleRoom1, exampleRoom2]
-print(calculateRoomWeight(exampleCourse1 , exampleRoom1 , professorToBuilding, subjectToBuilding, LARGESTDISTANCE, warningTextFile))
+print(calculateRoomWeights(exampleCourse1 , rooms , professorToBuilding, subjectToBuilding, LARGESTDISTANCE, warningTextFile))
