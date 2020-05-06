@@ -3,7 +3,7 @@
 import pandas as pd
 import xlrd
 import sys
-
+import datetime
 # Course object
 class Course(object):
     # bool representing if course has been scheduled or not set to False by default
@@ -19,7 +19,6 @@ class Course(object):
         self.professor = professor
         self.time = time
         self.cap = cap
-
     # course object print format
     def __repr__(self):
         return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.cap) + " " + self.time
@@ -33,7 +32,6 @@ class Room(object):
     def __init__(self, name, cap):
         self.name = name
         self.cap = cap
-
     # room object print format
     def __repr__(self):
         return self.name
@@ -89,6 +87,75 @@ for i in rooms:
 
 # sort room list by capacity
 roomList.sort(key = lambda room: room.cap)
+
+########################################################################weight Test
+def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, LARGESTDISTANCE, warningTxt):
+    #Roomweight Formula Multipliers
+    SUBJECTWEIGHTMUL = 1 
+    PROFWEIGHTMUL = 5
+
+    roomWeights = [None] * len(rooms)
+    i = 0
+    if not(course.professor in professorToBuilding):                                                                                                                 
+        fo = open(warningTxt, "a")
+        fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized professor \"" + course.professor + "\".\n")
+        fo.close()
+
+    if not(course.subject in subjectToBuilding):                                                                                                                                                                        
+        fo = open(warningTxt, "a")
+        fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized subject \"" + course.subject + "\".\n")
+        fo.close()
+    #loop and get weights
+    for room in rooms :                                                                          
+        #can room hold course?
+        if (room.cap < course.cap) :                                                                          
+            roomWeights[i] = -1
+            i += 1
+            continue
+    
+        #Get professor distance
+        if course.professor in professorToBuilding:                                                  
+            distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.name)        
+        else :
+            distFromProf = LARGESTDISTANCE                                                                  
+        
+        #Get subject distance
+        if course.subject in subjectToBuilding:                                                       
+            distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.name)         
+        
+        else:                                                                                                            
+            distFromSubject = LARGESTDISTANCE
+        
+        #calculate weight based on distances
+        #make distance negative (so large distance is worse) and shift up (so its positive)
+        profWeight = -distFromProf + LARGESTDISTANCE                                                                                                                            
+        subjectWeight = -distFromSubject + LARGESTDISTANCE
+        
+        #apply weight multipliers then add to get roomweight  
+        roomWeight = profWeight * PROFWEIGHTMUL + subjectWeight * SUBJECTWEIGHTMUL                          
+        roomWeights[i] = roomWeight
+        i += 1
+
+    return roomWeights                                                                                         
+#################### end of function
+def calculateBuildingDistance (buildingName, roomName):
+    if (buildingName in roomName):
+        return 5
+    else:
+        return 350
+warningTextFile = "warning.txt"
+fo = open(warningTextFile, "w")
+fo.write("Warnings:\n")
+fo.close()
+warningFile = "warning.txt"
+professorToBuilding = {"Staff" : "Information Technology"}
+subjectToBuilding = {"CMSC" : "Information Technology"}
+LARGESTDISTANCE = 500
+
+for course in courseList:
+    print(str(course.title) + " " + str(calculateRoomWeights(course , roomList , professorToBuilding, subjectToBuilding, LARGESTDISTANCE, warningTextFile)) + "\n")
+
+############################################################weight test end
 
 # loop timeSlots for monday and wednesday
 for i in spring2020.mw:

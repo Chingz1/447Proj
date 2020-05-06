@@ -16,28 +16,32 @@ def calculateRoomWeight(course, room, professorToBuilding, subjectToBuilding, LA
     #Roomweight Formula Multipliers
     SUBJECTWEIGHTMUL = 1
     PROFWEIGHTMUL = 5
+    #Do we recognize professor or subject?
+    if not(course.professor in professorToBuilding):                                                                                                                 
+        fo = open(warningTxt, "a")
+        fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized professor \"" + course.professor + "\".\n")
+        fo.close()
+
+    if not(course.subject in subjectToBuilding):                                                                                                                                                                        
+        fo = open(warningTxt, "a")
+        fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized subject \"" + course.subject + "\".\n")
+        fo.close()
     #can room hold course?
     if (room.cap < course.cap) :                                                                        
         return -1
     
     #Get professor distance
     if course.professor in professorToBuilding:                                                  
-        distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.building)        
+        distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.name)        
     else :
         distFromProf = LARGESTDISTANCE                                                                  
-        fo = open(warningTxt, "a")
-        fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized professor \"" + course.professor + "\".\n")
-        fo.close()
         
     #Get subject distance
     if course.subject in subjectToBuilding:                                                       
-        distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.building)         
+        distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.name)         
         
     else:                                                                                                           
         distFromSubject = LARGESTDISTANCE
-        fo = open(warningTxt, "a")
-        fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized subject \"" + course.subject + "\".\n")
-        fo.close()
         
     #calculate weight based on distances
     #make distance negative (so large distance is worse) and shift up (so its positive)
@@ -59,7 +63,15 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
 
     roomWeights = [None] * len(rooms)
     i = 0
-    
+    if not(course.professor in professorToBuilding):                                                                                                                 
+        fo = open(warningTxt, "a")
+        fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized professor \"" + course.professor + "\".\n")
+        fo.close()
+
+    if not(course.subject in subjectToBuilding):                                                                                                                                                                        
+        fo = open(warningTxt, "a")
+        fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized subject \"" + course.subject + "\".\n")
+        fo.close()
     #loop and get weights
     for room in rooms :                                                                          
         #can room hold course?
@@ -70,22 +82,16 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
     
         #Get professor distance
         if course.professor in professorToBuilding:                                                  
-            distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.building)        
+            distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.name)        
         else :
             distFromProf = LARGESTDISTANCE                                                                  
-            fo = open(warningTxt, "a")
-            fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized professor \"" + course.professor + "\".\n")
-            fo.close()
         
         #Get subject distance
         if course.subject in subjectToBuilding:                                                       
-            distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.building)         
+            distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.name)         
         
         else:                                                                                                            
             distFromSubject = LARGESTDISTANCE
-            fo = open(warningTxt, "a")
-            fo.write(str(datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized subject \"" + course.subject + "\".\n")
-            fo.close()
         
         #calculate weight based on distances
         #make distance negative (so large distance is worse) and shift up (so its positive)
@@ -99,3 +105,10 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
 
     return roomWeights                                                                                         
 #################### end of function
+
+#Just an example i used for testing. Real calculateBuildingDistance should get actual distances.
+def calculateBuildingDistance (buildingName, roomName):
+    if (buildingName in roomName):
+        return 5
+    else:
+        return 350
