@@ -33,6 +33,8 @@ class Course(object):
         # bool representing if course has been scheduled or not set to False by default
         self.shed = False
         self.room = None
+        self.days = ""
+        self.Mtime = 0
 
     # course object print format
     def __repr__(self):
@@ -137,6 +139,26 @@ def main():
     for i in courses:
         courseList.append(Course(i[0], i[1], i[2], i[3], i[4], i[5], i[6].lower(), i[7]))
 
+    for i in courseList:
+        if "mw" in i.time:
+            if "mwf" in i.time:
+                i.days = "Mon/Wed/Fri"
+                temp = (i.time.split("mwf"))
+                Stemp = temp[1]
+                Itemp = int(temp[1])
+
+                if 8 <= Itemp <= 12:
+
+
+            else:
+                i.days = "Mon/Wed"
+                temp = (i.time.split("mw"))
+                i.Mtime = int(temp[1])
+        if "tt" in i.time:
+            i.days = "Tues/Thu"
+            temp = (i.time.split("tt"))
+            i.Mtime = int(temp[1])
+
     # create rooms and add to room list
     for i in rooms:
         roomList.append(Room(i[0], i[1]))
@@ -147,9 +169,9 @@ def main():
     # sort room list by capacity
     roomList.sort(key=lambda room: room.cap)
 
-    generate_schedule(spring2020, courseList, roomList)
-    generate_output(spring2020, courseList)
-    print_schedule(spring2020)
+    # generate_schedule(spring2020, courseList, roomList)
+    # generate_output(spring2020, courseList)
+    # print_schedule(spring2020)
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
 # Input: A Schedule object, a list of Course objects, a list of room objects
@@ -215,11 +237,8 @@ def generate_alternatives(schedule):
         for slots in schedule.freeSlots:
             # for time slots in free spaces
             for keys in slots:
-                # try and fit into the same days as professor originally asked for
-                if course.time == keys and course.cap <= slots[keys].cap:
-                    course.alt.append(slots)
                 # if not fit into first slot found
-                elif slots[keys].cap >= course.cap:
+                if slots[keys].cap >= course.cap:
                     course.alt.append(slots)
             # limit to 3 alternatives max
             if len(course.alt) > 2:
