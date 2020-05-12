@@ -1,8 +1,9 @@
 import pandas
 import xlsxwriter
-
+import os
+import sys
 c = ["Time", "Room"]
-filename = "output.xlsx"
+filename = sys.argv[1]
 excel_data_df = pandas.read_excel(filename, sheet_name = "Schedule", usecols = c)
 
 #removes any unschedule classes
@@ -126,9 +127,13 @@ print("complete", complete)
 # Output to excel file
 # I could only run the Stat program once, if I ran it again it will
 # throw an error. The error can be fixed by deleting the tests.xlsx
-# file and running the program again
+# file and running the program again - ching
+#^i think i fixed it - anna
 #----------------------------------------------------------------
-workbook = xlsxwriter.Workbook("tests.xlsx")
+out_file = "stats_"+sys.argv[1]
+if os.path.exists(out_file):
+    os.remove(out_file)
+workbook = xlsxwriter.Workbook(out_file)
 sheet = workbook.add_worksheet("Stat1")
 row = 0
 col = 0
