@@ -130,9 +130,10 @@ print("complete", complete)
 #----------------------------------------------------------------
 workbook = xlsxwriter.Workbook("tests.xlsx")
 sheet = workbook.add_worksheet("Stat1")
-row = 0
+row = 1
 col = 0
-
+sheet.write(0, 0, "Classroom")
+sheet.write(0, 1, "Number of Courses Booked in a Day")
 #stats for how many times a classroom is booked in a day
 for x in timesBooked:
     room = str(x[0])
@@ -144,8 +145,11 @@ for x in timesBooked:
 
 #stats for how many hours are booked throughout the day and week
 sheet2 = workbook.add_worksheet("Stat2")
-row2 = 0
+row2 = 1
 col2 = 0
+sheet2.write(0, 0, "Classroom")
+sheet2.write(0, 1, "Total Number of Hours per Day")
+sheet2.write(0, 2, "Total Number of Hours per Week")
 for x in hours:
     room = str(x[0])
     day = str(x[1])
@@ -157,8 +161,10 @@ for x in hours:
 
 #stats for how many classes are booked on mw/tt/mwf
 sheet3 = workbook.add_worksheet("Stat3")
-row3 = 0
+row3 = 1
 col3 = 0
+sheet3.write(0, 0, "Days")
+sheet3.write(0, 1, "Number of Courses Booked")
 for x in timesStat:
     day = str(x[0])
     size = str(x[1])
@@ -168,8 +174,11 @@ for x in timesStat:
 
 #stats for how many classes are booked in a class on a day
 sheet4 = workbook.add_worksheet("Stat4")
-row4 = 0
+row4 = 1
 col4 = 0
+sheet4.write(0, 0, "Days/Time")
+sheet4.write(0, 1, "Classroom")
+sheet4.write(0, 2, "Number of Courses Booked")
 for x in complete:
         time = x[0]
         building = x[1]
