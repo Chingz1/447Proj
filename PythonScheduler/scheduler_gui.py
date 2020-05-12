@@ -3,7 +3,6 @@ import os
 import tkinter as tk
 import tkinter.font as font
 from tkinter import messagebox
-import subprocess as sub
 import sys
 # import xlrd
 import pandas as pd
@@ -41,12 +40,6 @@ def on_closing():
 def generate():
     runthis = 'python3 schedule2.py ' + inFile + ' ' + outFile
     os.system(runthis)
-    # output= sub.run(['python3','schedule2.py',inFile,outFile], check=True,capture_output=True).stdout
-
-    # x = sub.check_output(['python3','schedule2.py','ClassRoom.xlsx','output.csv'])
-    # sys.stdout = Std_redirector(text)
-    # p = sub.Popen('python3 schedule2.py ClassRoom.xlsx output.csv',stdout=sub.PIPE,stderr=sub.PIPE)
-    # output, errors = p.communicate()
 
 
 def view_schedule():
@@ -68,7 +61,7 @@ def view_schedule():
         listbox.insert(tk.END, key)
         for i in range(len(print_out_list[key])):
             listbox.insert(tk.END, str(print_out_list[key][i]))
-        # listbox.insert(tk.END, '\n')
+
     listbox.pack(side="left", fill=tk.BOTH, expand=True)
 
     scrollbar.config(command=listbox.yview_scroll)
@@ -99,33 +92,99 @@ def quit_top(top, root):
     top.destroy()  # Removes the toplevel window
     root.destroy()  # Removes the hidden root window
     sys.exit()  # Ends the script
-
+    
 
 class MainView(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
 
-        container = tk.Frame(self)
-        title_frame = tk.Frame(self)
-        container.configure(bg=BACKGROUND)
-        title_frame.configure(bg='black')
+        self.configure(bg=BACKGROUND)
+        tk.Grid.rowconfigure(self, 0, weight=1)
+        tk.Grid.columnconfigure(self, 0, weight=1)
 
-        label1 = tk.Label(title_frame, text="Welcome to the Scheduler!", font=("Helvetica", 32),fg='white',bg='black')
+        self.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
+        for row_index in range(5):
+            tk.Grid.rowconfigure(self, row_index, weight=1)
+            for col_index in range(6):
+                tk.Grid.columnconfigure(self, col_index, weight=1)
+        title_label = tk.Label(self, text="Welcome to the Scheduler!", font=("Helvetica", 32),fg='white',bg='black')
+        title_label.grid(row=0, column=0,columnspan=6, sticky=tk.N+tk.S+tk.E+tk.W)
 
-        b2 = tk.Button(container, text="View Schedule", command=view_schedule, highlightthickness=0,bg=GOLD)
-        b3 = tk.Button(container, text="View Statistics", highlightthickness=0,bg=GOLD)  # , command=p3.lift)
+        b2 = tk.Button(self, text="View Schedule", command=view_schedule, highlightthickness=0,bg=GOLD)
+        b3 = tk.Button(self, text="View Statistics", highlightthickness=0,bg=GOLD)  # , command=p3.lift)
+        qb = tk.Button(self, text="Quit",command=lambda:sys.exit(),highlightthickness=0,padx=5,bg=GOLD)
+        contact = tk.Button(self, text= "Contact Us",command=self.contact_form,highlightthickness=0,padx=5,bg=GOLD)
+        
+        
+        b2.grid(row=2, column=1,rowspan=2, sticky=tk.E+tk.W,padx = 10,pady=5)
+        b3.grid(row=2, column=4,rowspan=2, sticky=tk.E+tk.W, padx = 10,pady=5)
+        contact.grid(row=5, column=0, sticky=tk.E+tk.W, padx = 10,pady=5)
+        qb.grid(row=5, column=5, sticky=tk.E+tk.W, padx = 10,pady=5)
+        
+    #Creates the contact us form for user comment submission
+    def contact_form(self):
+        self.form = tk.Toplevel(self,bg=BACKGROUND)
+        self.form.title('Contact Us')
+    
+        tk.Grid.rowconfigure(self.form, 0, weight=1)
+        tk.Grid.columnconfigure(self.form, 0, weight=1)
+    
+        #Create & Configure frame 
+        frame=tk.Frame(self.form,bg=BACKGROUND)
+        frame.grid(row=0, column=0, sticky=tk.N+tk.S+tk.E+tk.W)
+        for row_index in range(5):
+            tk.Grid.rowconfigure(frame, row_index, weight=1)
+            for col_index in range(2):
+                tk.Grid.columnconfigure(frame, col_index, weight=1)
+                
+        #creates 3 entries, name, email, comment/concern
+        self.name=''
+        self.email=''
+        self.concern=''
+        tk.Label(frame, text="Name:", bg=BACKGROUND).grid(row=0, column=0, sticky=tk.N+tk.S,padx=5)
+        self.name= tk.Entry(frame)
+        self.name.config(highlightthickness=0)
+        self.name.grid(row=0, column=1, sticky=tk.E+tk.W)
+        tk.Label(frame, text="Email:", bg=BACKGROUND).grid(row=1, column=0, sticky=tk.N+tk.S,padx=5)
+        self.email = tk.Entry(frame)
+        self.email.config(highlightthickness=0)
+        self.email.grid(row=1, column=1, sticky=tk.E+tk.W)
+        tk.Label(frame, text="Comment:", bg=BACKGROUND).grid(row=2, column=0, sticky=tk.N+tk.S,padx=5)
+        self.concern = tk.Entry(frame)
+        self.concern.config(highlightthickness=0)
+        self.concern.grid(row=2, column=1,rowspan=2, sticky=tk.E+tk.W+tk.N+tk.S)
+        
+        submit_b =  tk.Button(frame, text="Submit", command=self.comment_file, highlightthickness=0, padx=5, bg=GOLD)
+        frame.bind('<Return>', lambda e: self.comment_file)
+        submit_b.grid(row=4, column=1, sticky=tk.E+tk.W)
+        
+    #actually writes comments to file
+    def comment_file(self):
 
-        label1.pack(side="top", anchor=tk.N,pady=10)
-        b2.pack(side="left", padx=20)
-        b3.pack(side="right", padx=20)
-        title_frame.pack(side="top",fill='x')
-        container.pack(side="bottom", fill="both", expand=True)
-
-
+        comment = str(self.name.get())+','+str(self.email.get())+','+str(self.concern.get())+'\n'
+        out_file = "user_comments.csv"
+        print(comment)
+        if len(str(self.name.get()).strip())==0 or len(str(self.email.get()).strip())==0 or len(str(self.concern.get()).strip())==0:
+            tk.messagebox.showwarning(title="Warning", message="Required input is missing. Comment will not be submitted.")
+        else:
+            if os.path.exists(out_file):
+                myfile=open(out_file,'a')
+                myfile.write(comment)
+                myfile.close()
+            else:
+                myfile=open(out_file,'w')
+                myfile.write('Name,Email,Comment\n')
+                myfile.write(comment)
+                myfile.close()
+            
+        #destroys contact form after writing to file
+        self.form.destroy()
+    
 if __name__ == "__main__":
     root = tk.Tk()
     root.protocol("WM_DELETE_WINDOW", on_closing)
     root.title('Main Menu')
+    root.configure(bg=BACKGROUND)
     
     entry = tk.Toplevel(bg=BACKGROUND)
     entry.protocol("WM_DELETE_WINDOW", on_closing)
@@ -168,7 +227,9 @@ if __name__ == "__main__":
     root.withdraw()
     # bg_frame = GradientFrame(root, from_color="#000000", to_color="#E74C3C", height=100)
 
-    main = MainView(root)
-    main.pack(side="top", fill="both", expand=True)
+    main = MainView()
+    #main=tk.Frame(root,bg=BACKGROUND)
+    #main_view(root)
     root.wm_geometry("400x400")
+    main.pack(side="top", fill="both", expand=True)
     root.mainloop()
