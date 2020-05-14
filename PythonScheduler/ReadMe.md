@@ -1,4 +1,4 @@
-#Python Scheduler 
+# Python Scheduler 
 -All of our code are written in python, we used the anconda environment to run the code
 -The following libaries needs to be installed: xlrd, pandas, tkinter, tabulate
 -Run schedule2.py with ClassRoom.xlsx in the arguments
