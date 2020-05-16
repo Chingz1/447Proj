@@ -2,6 +2,9 @@ import pandas
 import xlsxwriter
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+import sys
+
 
 c = ["Time", "Room"]
 filename = "output.xlsx"
@@ -130,7 +133,12 @@ print("complete", complete)
 # throw an error. The error can be fixed by deleting the tests.xlsx
 # file and running the program again
 #----------------------------------------------------------------
-workbook = xlsxwriter.Workbook("tests.xlsx")
+out_file = "stats_"+sys.argv[1]
+if os.path.exists(out_file):
+    os.remove(out_file)
+outname =sys.argv[1][:len(sys.argv[1])-5]
+
+workbook = xlsxwriter.Workbook(out_file)
 sheet = workbook.add_worksheet("Stat1")
 row = 1
 col = 0
@@ -153,7 +161,7 @@ fig1, ax1 = plt.subplots()
 plt.title("Times a Classroom is booked")
 ax1.bar(labels, data)
 plt.xticks(rotation=45)
-plt.savefig('stat1.png', dpi=300, bbox_inches='tight')
+plt.savefig('stat1_'+outname+'.png', dpi=300, bbox_inches='tight')
 
 
 #stats for how many hours are booked throughout the day and week
@@ -189,7 +197,7 @@ ax.set_xticks(x)
 ax.set_xticklabels(labels, rotation=45)
 ax.legend()
 fig.tight_layout()
-plt.savefig('stat2.png', dpi=300, bbox_inches='tight')
+plt.savefig('stat2_'+outname+'.png', dpi=300, bbox_inches='tight')
 
 
 #stats for how many classes are booked on mw/tt/mwf
@@ -223,7 +231,7 @@ ax.legend(wedges, labels3,
           bbox_to_anchor=(1, 0, 0.5, 1))
 plt.setp(autotexts, size=8, weight="bold")
 ax.set_title("Number of Classes Booked Each Day")
-plt.savefig('stat3.png', dpi=300, bbox_inches='tight')
+plt.savefig('stat3_'+outname+'.png', dpi=300, bbox_inches='tight')
 
 
 #stats for how many classes are booked in a class on a day
@@ -243,6 +251,3 @@ for x in complete:
         row4+=1
 
 workbook.close()
-
-
-

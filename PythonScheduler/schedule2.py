@@ -10,12 +10,12 @@ if "xlrd" not in dir():
 import sys
 if "sys" not in dir():
     raise ModuleNotFoundError("sys import error")
+import os
+if "os" not in dir():
+    raise ModuleNotFoundError("os import error")
 import xlsxwriter
 if "xlsxwriter" not in dir():
     raise ModuleNotFoundError("xlsxwriter import error")
-import datetime
-if "datetime" not in dir():
-    raise ModuleNotFoundError("datetime import error")
 
 
 # Course object
@@ -36,8 +36,6 @@ class Course(object):
         # bool representing if course has been scheduled or not set to False by default
         self.shed = False
         self.room = None
-        self.days = None
-        self.Mtime = None
 
     # course object print format
     def __repr__(self):
@@ -142,23 +140,6 @@ def main():
     for i in courses:
         courseList.append(Course(i[0], i[1], i[2], i[3], i[4], i[5], i[6].lower(), i[7]))
 
-    for i in courseList:
-        if "mw" in i.time:
-            if "mwf" in i.time:
-                i.days = "Mon/Wed/Fri"
-                temp = i.time.split("mwf")
-                i.Mtime = convert_Time(temp)
-
-
-            else:
-                i.days = "Mon/Wed"
-                temp = i.time.split("mw")
-                i.Mtime = convert_Time(temp)
-        if "tt" in i.time:
-            i.days = "Tues/Thurs"
-            temp = i.time.split("tt")
-            i.Mtime = convert_Time(temp)
-
     # create rooms and add to room list
     for i in rooms:
         roomList.append(Room(i[0], i[1]))
@@ -170,14 +151,10 @@ def main():
     roomList.sort(key=lambda room: room.cap)
 
     generate_schedule(spring2020, courseList, roomList)
-    spring2020.solution[0].sort(key=lambda course: course.Mtime.hour)
-    spring2020.solution[1].sort(key=lambda course: course.Mtime.hour)
-    spring2020.solution[2].sort(key=lambda course: course.Mtime.hour)
-    spring2020.solution[3].sort(key=lambda course: course.Mtime.hour)
-    spring2020.solution[4].sort(key=lambda course: course.Mtime.hour)
-
     generate_output(spring2020, courseList)
     print_schedule(spring2020)
+    runthis = 'python3 Stat.py ' + sys.argv[2]
+    os.system(runthis)
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
 # Input: A Schedule object, a list of Course objects, a list of room objects
@@ -243,8 +220,11 @@ def generate_alternatives(schedule):
         for slots in schedule.freeSlots:
             # for time slots in free spaces
             for keys in slots:
+                # try and fit into the same days as professor originally asked for
+                if course.time == keys and course.cap <= slots[keys].cap:
+                    course.alt.append(slots)
                 # if not fit into first slot found
-                if slots[keys].cap >= course.cap:
+                elif slots[keys].cap >= course.cap:
                     course.alt.append(slots)
             # limit to 3 alternatives max
             if len(course.alt) > 2:
@@ -269,7 +249,7 @@ def generate_output(schedule, courses):
             else:
                 version = every.ver
             temp = [every.subject + " " + str(every.course), every.title, version, every.sec, every.professor,
-                    every.cap, every.days, str(every.Mtime), str(every.room), "scheduled"]
+                    every.cap, every.time, str(every.room), "scheduled"]
             if temp not in output_list:
                 output_list.append(temp)
 
@@ -281,7 +261,7 @@ def generate_output(schedule, courses):
             else:
                 version = i.ver
 
-            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "", "",
+            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "",
                     "unscheduled"]
             if temp not in output_list:
                 output_list.append(temp)
@@ -293,7 +273,7 @@ def generate_output(schedule, courses):
     out_workbook = xlsxwriter.Workbook(sys.argv[2])
     # create sheet and header schedule
     scheduleSheet = out_workbook.add_worksheet('Schedule')
-    Sheader = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Days", "Time", "Room", "Status"]
+    Sheader = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Time", "Room", "Status"]
     # add schedule
     for i in range(len(output_list)):
         for j in range(len(output_list[i])):
@@ -301,8 +281,7 @@ def generate_output(schedule, courses):
                 scheduleSheet.write(i, j, Sheader[j])
 
             else:
-                scheduleSheet.write(i, j, output_list[i-1][j])
-
+                scheduleSheet.write(i, j, output_list[i][j])
 
     # create alternatives sheet and header
     altSheet = out_workbook.add_worksheet('Alternatives')
@@ -360,32 +339,6 @@ def print_schedule(schedule):
 
     return
 
-def convert_Time(temp):
-    if len(temp[1]) <= 2:
-        hour = int(temp[1])
-        if 1 <= hour <= 8:
-            hour += 12
-        minutes = 0
-        return datetime.time(hour, minutes)
-    elif len(temp[1]) == 4:
-        hour = int(temp[1][0] + temp[1][1])
-        if 1 <= hour <= 8:
-            hour += 12
-        temp = temp[1].split(temp[1][1])
-        minutes = int(temp[2])
-        return datetime.time(hour, minutes)
-    else:
-        hour = int(temp[1][0])
-        if 1 <= hour <= 8:
-            hour += 12
-        temp = temp[1].split(temp[1][0])
-        minutes = int(temp[1])
-        return datetime.time(hour, minutes)
-
 
 if __name__ == "__main__":
     main()
-
-
-
-

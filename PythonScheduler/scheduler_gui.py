@@ -4,7 +4,6 @@ import tkinter as tk
 import tkinter.font as font
 from tkinter import messagebox
 import sys
-# import xlrd
 import pandas as pd
 
 global G_out
@@ -155,7 +154,7 @@ class MainView(tk.Frame):
         self.concern.grid(row=2, column=1,rowspan=2, sticky=tk.E+tk.W+tk.N+tk.S)
         
         submit_b =  tk.Button(frame, text="Submit", command=self.comment_file, highlightthickness=0, padx=5, bg=GOLD)
-        frame.bind('<Return>', lambda e: self.comment_file)
+        self.form.bind('<Return>', lambda e: self.comment_file())
         submit_b.grid(row=4, column=1, sticky=tk.E+tk.W)
         
     #actually writes comments to file
@@ -163,7 +162,6 @@ class MainView(tk.Frame):
 
         comment = str(self.name.get())+','+str(self.email.get())+','+str(self.concern.get())+'\n'
         out_file = "user_comments.csv"
-        print(comment)
         if len(str(self.name.get()).strip())==0 or len(str(self.email.get()).strip())==0 or len(str(self.concern.get()).strip())==0:
             tk.messagebox.showwarning(title="Warning", message="Required input is missing. Comment will not be submitted.")
         else:
