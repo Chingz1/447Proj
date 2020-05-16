@@ -138,6 +138,7 @@ sheet.write(0, 0, "Classroom")
 sheet.write(0, 1, "Number of Courses Booked in a Day")
 labels = []
 data = []
+
 #stats for how many times a classroom is booked in a day
 for x in timesBooked:
     room = str(x[0])
@@ -152,7 +153,8 @@ fig1, ax1 = plt.subplots()
 plt.title("Times a Classroom is booked")
 ax1.bar(labels, data)
 plt.xticks(rotation=45)
-plt.show()
+plt.savefig('stat1.png', dpi=300, bbox_inches='tight')
+
 
 #stats for how many hours are booked throughout the day and week
 sheet2 = workbook.add_worksheet("Stat2")
@@ -187,7 +189,8 @@ ax.set_xticks(x)
 ax.set_xticklabels(labels, rotation=45)
 ax.legend()
 fig.tight_layout()
-plt.show()
+plt.savefig('stat2.png', dpi=300, bbox_inches='tight')
+
 
 #stats for how many classes are booked on mw/tt/mwf
 sheet3 = workbook.add_worksheet("Stat3")
@@ -220,7 +223,8 @@ ax.legend(wedges, labels3,
           bbox_to_anchor=(1, 0, 0.5, 1))
 plt.setp(autotexts, size=8, weight="bold")
 ax.set_title("Number of Classes Booked Each Day")
-plt.show()
+plt.savefig('stat3.png', dpi=300, bbox_inches='tight')
+
 
 #stats for how many classes are booked in a class on a day
 sheet4 = workbook.add_worksheet("Stat4")
