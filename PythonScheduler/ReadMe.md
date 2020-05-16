@@ -3,7 +3,7 @@
 
 ## Setup 
 * Download a Python3 environment, we recommend Anaconda, but you’re welcome to download any Python3 environment: https://docs.anaconda.com/anaconda/install/
-* Required Libraries: Pandas, Xlsxwriter, Tkinter, Sys, Time, OS, and DayTime
+* Required Libraries: Pandas, Matplotlib, Xlsxwriter, Tkinter, Sys,OS, Time, Xlrd, Numpy and DayTime
 * Once Anaconda complete its installation, install the libraries by opening up the Anaconda prompt, which you can access by searching up Anaconda on the Windows search bar.
 * After successfully installing all of the required libraries, download our scheduling software from Github and save the files to a location that you can easily access
 * Once the scheduling software is downloaded, open up Jupyter Notebook which comes prepackaged with Anaconda. Jupyter Notebook can be accessed in the same manner as Anaconda, simply search it up on the Windows search bar
