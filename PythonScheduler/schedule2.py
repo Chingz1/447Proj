@@ -25,7 +25,7 @@ import datetime
 if "datetime" not in dir():
     raise ModuleNotFoundError("datetime import error")
 from geopy.distance import geodesic
-import copy
+
 
 
 # Course object
@@ -116,15 +116,15 @@ def main(inF,outF):
     try:
         dataClasses = pd.read_excel(file, sheet_name='Schedule')  # reading file
     except Exception:
-        print("Error: There is no table in your classroom file titled 'Schedule'.")
+        raise Exception("Error: There is no table in your classroom file titled 'Schedule'.")
     try:
         dataRooms = pd.read_excel(file, sheet_name='Capacity')  # reading file
     except Exception:
-        print("Error: There is no table in your classroom file titled 'Capacity'.")
+        raise Exception("Error: There is no table in your classroom file titled 'Capacity'.")
     try:
         dataBuild = pd.read_excel(file, sheet_name='Coords')  # reading file
     except Exception:
-        print("Error: There is no table in your classroom file titled 'Coords'.")
+        raise Exception("Error: There is no table in your classroom file titled 'Coords'.")
 
     # convert pandas data frame into raw values
     courses = dataClasses.values
@@ -264,8 +264,6 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
                         if w <= 0:
                             break
                         bestRoom = weights.index(max(temp))
-
-
                     else:
                         j.shed = True
                         j.room = rooms[bestRoom]
