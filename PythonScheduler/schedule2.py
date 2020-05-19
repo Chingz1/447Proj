@@ -106,9 +106,9 @@ class Building(object):
 # main: using a given input file creates the best possible schedule taking into account distance and capacity
 # Input: a .xlsx file containing a sheet for courses, rooms, and buildings
 # Output: a .xlsx file with the schedule, possible alternatives foe unscheduled classes, and statistics related to the schedule
-def main():
+def main(inF,outF):
     # use inline command holding the file name
-    file = sys.argv[1]
+    file = inF
 
     # read in input file separated by sheets
     try:
@@ -193,7 +193,7 @@ def main():
     spring2020.solution[3].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[4].sort(key=lambda course: course.Mtime.hour)
 
-    generate_output(spring2020, courseList)
+    generate_output(spring2020, courseList,outF)
     print_schedule(spring2020)
 
 
@@ -201,7 +201,6 @@ def main():
 # Input: A Schedule object, a list of Course objects, a list of room objects
 # Output: None
 def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
-    test = []
     # loop timeSlots for monday and wednesday
     for i in schedule.mw:
         for j in courses:
@@ -284,7 +283,7 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
         if not i.shed:
             schedule.unScheduled.append(i)
 
-    generate_alternatives(schedule)
+    generate_alternatives(schedule, rooms, buildings, subjectToBuilding)
 
     return
 
@@ -292,27 +291,34 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
 # generate_alternatives: finds unscheduled courses the three best alternative times
 # Input: A Schedule object
 # Output: None
-def generate_alternatives(schedule):
-    # loop over unscheduled classes
-    for course in schedule.unScheduled:
-        # loop over available classes
-        for slots in schedule.freeSlots:
-            # for time slots in free spaces
-            for keys in slots:
-                # if not fit into first slot found
-                if slots[keys].cap >= course.cap:
-                    course.alt.append(slots)
-            # limit to 3 alternatives max
-            if len(course.alt) > 2:
-                break
-
+def generate_alternatives(schedule, rooms, buildings, subjectToBuilding):
+    for i in schedule.freeSlots:
+        for j in schedule.unScheduled:
+            weights = calculateRoomWeights(j, rooms, {}, subjectToBuilding, 500, "warning.txt", buildings)
+            bestAlt = weights.index(max(weights))
+            w = max(weights)
+            temp = list(weights)
+            while len(j.alt) != 3:
+                for k in i:
+                    if rooms[bestAlt] == i[k]:
+                        j.alt.append(i)
+                del temp[temp.index(max(temp))]
+                if len(temp) == 0:
+                    break
+                w = max(temp)
+                if w <= 0:
+                    break
+                bestAlt = weights.index(max(temp))
+    for i in schedule.unScheduled:
+        for j in i.alt:
+            print(i ,j )
     return
 
 
 # generate_output: creates an xlsx output file that contains the information of the scheduled and unscheduled classes
 # Input: A Schedule object, a list of Course objects
 # Output: None
-def generate_output(schedule, courses):
+def generate_output(schedule, courses,outF):
     # making a list that formats output info
     output_list = []
     alt_list = []
@@ -337,7 +343,7 @@ def generate_output(schedule, courses):
             else:
                 version = i.ver
 
-            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, i.days, "", "",
+            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "", "",
                     "unscheduled"]
             if temp not in output_list:
                 output_list.append(temp)
@@ -346,7 +352,7 @@ def generate_output(schedule, courses):
             alt_list.append(temp)
 
     # writing to output excel workbook file that the user specifies as the second argument
-    out_workbook = xlsxwriter.Workbook(sys.argv[2])
+    out_workbook = xlsxwriter.Workbook(outF)
     # create sheet and header schedule
     scheduleSheet = out_workbook.add_worksheet('Schedule')
     Sheader = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Days", "Time", "Room", "Status"]
@@ -381,6 +387,7 @@ def generate_output(schedule, courses):
 
     # close workbook
     out_workbook.close()
+
     return
 
 
@@ -509,4 +516,4 @@ def calculateBuildingDistance(buildingName, roomName, buildings):
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1], sys.argv[2])
