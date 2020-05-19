@@ -19,7 +19,7 @@ if "xlsxwriter" not in dir():
 import datetime
 if "datetime" not in dir():
     raise ModuleNotFoundError("datetime import error")
-
+#import Stat
 
 # Course object
 class Course(object):
@@ -83,9 +83,9 @@ class Building(object):
 # main: using a given input file creates the best possible schedule taking into account distance and capacity
 # Input: a .xlsx file containing a sheet for courses, rooms, and buildings
 # Output: a .xlsx file with the schedule, possible alternatives foe unscheduled classes, and statistics related to the schedule
-def main():
+def main(inF,outF):
     # use inline command holding the file name
-    file = sys.argv[1]
+    file = inF#sys.argv[1]
     # read in input file separated by sheets
     try:
         dataClasses = pd.read_excel(file, sheet_name='Schedule')  # reading file
@@ -153,10 +153,11 @@ def main():
     spring2020.solution[3].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[4].sort(key=lambda course: course.Mtime.hour)
 
-    generate_output(spring2020, courseList)
+    generate_output(spring2020, courseList,outF)
     print_schedule(spring2020)
-    runthis = 'python3 Stat.py ' + sys.argv[2]
-    os.system(runthis)
+    
+    #runthis = 'python3 Stat.py ' + sys.argv[2]
+    #os.system(runthis)
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
 # Input: A Schedule object, a list of Course objects, a list of room objects
@@ -228,7 +229,7 @@ def generate_alternatives(schedule):
 # generate_output: creates an xlsx output file that contains the information of the scheduled and unscheduled classes
 # Input: A Schedule object, a list of Course objects
 # Output: None
-def generate_output(schedule, courses):
+def generate_output(schedule, courses,outFile):
     # making a list that formats output info
     output_list = []
     alt_list = []
@@ -257,7 +258,7 @@ def generate_output(schedule, courses):
             temp = [i.subject + " " + str(i.course) + i.title + str(i.sec) + i.professor]
             alt_list.append(temp)
     # writing to output excel workbook file that the user specifies as the second argument
-    out_workbook = xlsxwriter.Workbook(sys.argv[2])
+    out_workbook = xlsxwriter.Workbook(outFile)
     # create sheet and header schedule
     scheduleSheet = out_workbook.add_worksheet('Schedule')
     Sheader = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Days", "Time", "Room", "Status"]
@@ -345,4 +346,4 @@ def convert_Time(temp):
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1],sys.argv[2])

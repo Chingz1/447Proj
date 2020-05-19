@@ -5,7 +5,7 @@ import tkinter.font as font
 from tkinter import messagebox
 import sys
 import pandas as pd
-
+import schedule2
 from PIL import Image, ImageTk
 
 global G_out
@@ -39,22 +39,29 @@ def on_closing():
 
 
 def generate():
-    runthis = 'python3 schedule2.py ' + inFile + ' ' + outFile
-    os.system(runthis)
+    runthis = 'schedule2.py ' + inFile + ' ' + outFile
+    #exec(open("./"+runthis).read())
+    schedule2.main(inFile,outFile)
+    #os.system(runthis)
 
 
 
 def view_schedule():
     master = tk.Tk()
+    master.minsize(width = 600, height = 600)
     scrollbar = tk.Scrollbar(master,orient='vertical')
     scrollbarx = tk.Scrollbar(master,orient='horizontal')
     master.title('View Schedule')
     master.configure(bg=BACKGROUND)
+    listbox = tk.Listbox(master, bg='white')
+    scrollbar = tk.Scrollbar(listbox,orient='vertical')
+    scrollbarx = tk.Scrollbar(listbox,orient='horizontal')
+    listbox.config(xscrollcommand= scrollbarx.set, yscrollcommand=scrollbar.set)
+    scrollbarx.config(command=listbox.xview)
+    scrollbar.config(command=listbox.yview)#_scroll)
+    #_scroll)
     scrollbar.pack(side="right", fill=tk.Y, expand=False)
     scrollbarx.pack(side="bottom",fill=tk.X,expand=False)
-    listbox = tk.Listbox(master, xscrollcommand= scrollbarx.set, yscrollcommand=scrollbar.set,bg='white')
-    scrollbar.config(command=listbox.yview_scroll)
-    scrollbarx.config(command=listbox.xview_scroll)
     #df = pd.read_excel(outFile, sheet_name='Schedule')
     #sched_list = df.values.tolist()
     #print_out_list = {"Scheduled:": [], "Unscheduled:": []}
@@ -68,7 +75,7 @@ def view_schedule():
     data.insert(0,header)
     for line in data:
         temp_line = ""
-        if line[len(line)-1].lower() == "scheduled":
+        if line[len(line)-1].lower() == "scheduled" or line[len(line)-1].lower() == "status":
             for val in range(len(line)):
                 if val == len(line)-1 or val == 2 or val == 3:
                     temp_line = temp_line                   
@@ -78,6 +85,10 @@ def view_schedule():
                         chars = 60
                     elif val == 8:
                         chars = 37
+                    elif val==6 or val==0 or val==7:
+                        chars=15
+                    elif val==5:
+                        chars=7
                     else:
                         chars = 24
                     spaces = chars - len(str(line[val]))
@@ -97,9 +108,9 @@ def view_schedule():
     #    listbox.insert(tk.END, key)
     #    for i in range(len(print_out_list[key])):
     #        listbox.insert(tk.END, str(print_out_list[key][i]))
-    #u_button = tk.Button(master, text="Unscheduled", highlightthickness=0, padx=5, bg=GOLD)
-    listbox.pack(side="top", fill=tk.BOTH, expand=True)
-    #u_button.pack(side="top")
+    u_button = tk.Button(master, text="Unscheduled", highlightthickness=0, padx=5, bg=GOLD)
+    listbox.pack(side="top", fill=tk.BOTH,expand=True)
+    u_button.pack(side="top")
 
     temp = tk.Button(text="test")
     master.mainloop()
@@ -234,13 +245,13 @@ class MainView(tk.Frame):
         stat3.image = photo3 # keep a reference!
         stat3.grid(row=2, column=2, sticky=tk.E+tk.W+tk.S+tk.N)
         
-        b_stat1 = tk.Button(frame, text="Room usage by Time", command=self.stat1_out, bg=GOLD)
+        b_stat1 = tk.Button(frame, text="Room usage by Time", command=self.stat1_out, bg=GOLD,highlightthickness=0)
         b_stat1.grid(row=3, column=1, sticky=tk.E+tk.W+tk.S+tk.N)
-        b_stat2 = tk.Button(frame, text="Hours in Rooms", command=self.stat2_out, bg=GOLD)
+        b_stat2 = tk.Button(frame, text="Hours in Rooms", command=self.stat2_out, bg=GOLD,highlightthickness=0)
         b_stat2.grid(row=3, column=3, sticky=tk.E+tk.W+tk.S+tk.N)
-        b_stat3 = tk.Button(frame, text="Classes per Day", command=self.stat3_out, bg=GOLD)
+        b_stat3 = tk.Button(frame, text="Classes per Day", command=self.stat3_out, bg=GOLD,highlightthickness=0)
         b_stat3.grid(row=3, column=2, sticky=tk.E+tk.W+tk.S+tk.N)
-        b_stat4 = tk.Button(frame, text="Classes booked per Room and Time", command=self.stat4_out, bg=GOLD)
+        b_stat4 = tk.Button(frame, text="Classes booked per Room and Time", command=self.stat4_out, bg=GOLD,highlightthickness=0)
         b_stat4.grid(row=4, column=1,columnspan=3, sticky=tk.E+tk.W+tk.S+tk.N)
         
     def stat1_out(self):
@@ -262,9 +273,16 @@ class MainView(tk.Frame):
             for col_index in range(len(header)):
                 tk.Grid.columnconfigure(frame, col_index, weight=1)
                 if row_index == 0:
-                    tk.Label(frame, text=header[col_index], bg=BACKGROUND).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
+                    color=BACKGROUND
+                    fcolor='black'
+                    if col_index%2==0:
+                        color = 'black'
+                        fcolor= 'white'
+                    else:
+                        color= 'white'
+                    tk.Label(frame, text=header[col_index], fg=fcolor,bg=color).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
                 else:
-                    tk.Label(frame, text=data[col_index], bg=BACKGROUND).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
+                    tk.Label(frame, text=data[row_index][col_index], fg=fcolor,bg=color).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
     
     def stat2_out(self):
         self.stats2 = tk.Toplevel(self.stats,bg=BACKGROUND)
@@ -285,9 +303,16 @@ class MainView(tk.Frame):
             for col_index in range(len(header)):
                 tk.Grid.columnconfigure(frame, col_index, weight=1)
                 if row_index == 0:
-                    tk.Label(frame, text=header[col_index], bg=BACKGROUND).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
+                    color=BACKGROUND
+                    fcolor='black'
+                    if col_index%2==0:
+                        color = 'black'
+                        fcolor= 'white'
+                    else:
+                        color= 'white'
+                    tk.Label(frame, text=header[col_index], fg=fcolor,bg=color).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
                 else:
-                    tk.Label(frame, text=data[col_index], bg=BACKGROUND).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
+                    tk.Label(frame, text=data[row_index][col_index], fg=fcolor,bg=color).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
 
     def stat3_out(self):
         self.stats3 = tk.Toplevel(self.stats,bg=BACKGROUND)
@@ -308,9 +333,16 @@ class MainView(tk.Frame):
             for col_index in range(len(header)):
                 tk.Grid.columnconfigure(frame, col_index, weight=1)
                 if row_index == 0:
-                    tk.Label(frame, text=header[col_index], bg=BACKGROUND).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
+                    color=BACKGROUND
+                    fcolor='black'
+                    if col_index%2==0:
+                        color = 'black'
+                        fcolor= 'white'
+                    else:
+                        color= 'white'
+                    tk.Label(frame, text=header[col_index], fg=fcolor,bg=color).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
                 else:
-                    tk.Label(frame, text=data[col_index], bg=BACKGROUND).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
+                    tk.Label(frame, text=data[row_index][col_index], fg=fcolor,bg=color).grid(row=row_index, column=col_index, sticky=tk.N+tk.S,padx=5,pady=5)
         
     def stat4_out(self):
         self.stats4 = tk.Toplevel(self.stats,bg=BACKGROUND)
@@ -409,6 +441,6 @@ if __name__ == "__main__":
     main = MainView()
     #main=tk.Frame(root,bg=BACKGROUND)
     #main_view(root)
-    root.wm_geometry("400x400")
+    root.wm_geometry("600x600")
     main.pack(side="top", fill="both", expand=True)
     root.mainloop()
