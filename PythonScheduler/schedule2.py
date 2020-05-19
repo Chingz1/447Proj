@@ -13,6 +13,9 @@ import sys
 
 if "sys" not in dir():
     raise ModuleNotFoundError("sys import error")
+import os
+if "os" not in dir():
+    raise ModuleNotFoundError("os import error")
 import xlsxwriter
 
 if "xlsxwriter" not in dir():
@@ -73,7 +76,6 @@ class Room(object):
 
     def __str__(self):
         return self.name
-
 
 # schedule object
 class Schedule(object):
@@ -149,7 +151,7 @@ def main(inF,outF):
         if (("MWF" in i) or ("mwf" in i)) and not (i in spring2020.mwf):
             spring2020.mwf.append(i.lower())
 
-    temp = copy.deepcopy(spring2020)
+
     # create courses and add to Course list
     for i in courses:
         # (self, subject, course, title, ver, sec, professor, time, cap):
@@ -195,7 +197,8 @@ def main(inF,outF):
 
     generate_output(spring2020, courseList,outF)
     print_schedule(spring2020)
-
+    # runthis = 'python3 Stat.py ' + sys.argv[2]
+    # os.system(runthis)
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
 # Input: A Schedule object, a list of Course objects, a list of room objects
@@ -231,9 +234,9 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
                         # add course and room to solution list for monday and wednesday (added as dictionary)
                         schedule.solution[0].append(j)
                         schedule.solution[2].append(j)
+                        # if course is also scheduled for friday add to solution list for friday
                         if "mwf" in j.time:
                             schedule.solution[4].append(j)
-
         # loop over all rooms and reset taken value for next time slot
         for t in rooms:
             # if a room is not taken at a certain time save it for alternatives
@@ -389,8 +392,6 @@ def generate_output(schedule, courses,outF):
     out_workbook.close()
 
     return
-
-
 # print_schedule: prints a given schedule by days ( for quick debugging purposes only)
 # Input: A Schedule object
 # Output: printed schedule
@@ -422,7 +423,6 @@ def print_schedule(schedule):
         print(i)
 
     return
-
 
 def convert_Time(temp):
     if len(temp[1]) <= 2:
