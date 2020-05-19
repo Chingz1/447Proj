@@ -24,6 +24,7 @@ if "datetime" not in dir():
 from geopy.distance import geodesic
 import copy
 
+
 # Course object
 class Course(object):
 
@@ -53,7 +54,7 @@ class Course(object):
         else:
 
             return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.sec) + ", " + str(
-                self.room) +  " " + str(self.Mtime)
+                self.room) + " " + str(self.Mtime)
 
 
 # room object
@@ -141,7 +142,6 @@ def main():
     for i in dataClasses.Time:
         # if statement to separate slots based on days and to avoid repeats
         if (("mw" in i) or ("MW" in i)) and not (i in spring2020.mw):
-
             spring2020.mw.append(i.lower())
         if (("tt" in i) or ("TT" in i)) and not (i in spring2020.tt):
             spring2020.tt.append(i.lower())
@@ -152,7 +152,7 @@ def main():
     temp = copy.deepcopy(spring2020)
     # create courses and add to Course list
     for i in courses:
-        #(self, subject, course, title, ver, sec, professor, time, cap):
+        # (self, subject, course, title, ver, sec, professor, time, cap):
         courseList.append(Course(i[0], str(i[1]), i[2], i[3], i[4], i[5], i[6].lower(), i[7]))
 
     for i in courseList:
@@ -194,7 +194,7 @@ def main():
     spring2020.solution[4].sort(key=lambda course: course.Mtime.hour)
 
     generate_output(spring2020, courseList)
-    #print_schedule(spring2020)
+    print_schedule(spring2020)
 
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
@@ -212,20 +212,23 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
                 temp = list(weights)
                 while not j.shed:
 
-                    if w == 0:
+                    if w <= 0:
                         break
                     if rooms[bestRoom].taken:
-                        del temp[bestRoom]
-                        w = max(temp)
-                        bestRoom = temp.index(max(temp))
-                        if len(temp) == 0 or w <= 0:
+                        del temp[temp.index(max(temp))]
+                        if len(temp) == 0:
                             break
+                        w = max(temp)
+                        if w <= 0:
+                            break
+                        bestRoom = weights.index(max(temp))
 
                     else:
 
                         j.shed = True
                         j.room = rooms[bestRoom]
                         rooms[bestRoom].taken = True
+
                         # add course and room to solution list for monday and wednesday (added as dictionary)
                         schedule.solution[0].append(j)
                         schedule.solution[2].append(j)
@@ -237,12 +240,48 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
             # if a room is not taken at a certain time save it for alternatives
             if not t.taken:
                 schedule.freeSlots.append({i: t})
-            t.taken = False
+            else:
+                t.taken = False
+
+    for i in schedule.tt:
+        for j in courses:
+            if i == j.time:
+                weights = calculateRoomWeights(j, rooms, {}, subjectToBuilding, 500, "warning.txt", buildings)
+                bestRoom = weights.index(max(weights))
+                w = max(weights)
+                temp = list(weights)
+                while not j.shed:
+
+                    if w == 0:
+                        break
+                    if rooms[bestRoom].taken:
+                        del temp[temp.index(max(temp))]
+                        if len(temp) == 0:
+                            break
+                        w = max(temp)
+                        if w <= 0:
+                            break
+                        bestRoom = weights.index(max(temp))
+
+
+                    else:
+                        j.shed = True
+                        j.room = rooms[bestRoom]
+                        rooms[bestRoom].taken = True
+                        # add course and room to solution list for monday and wednesday (added as dictionary)
+                        schedule.solution[1].append(j)
+                        schedule.solution[3].append(j)
+
+        # loop over all rooms and reset taken value for next time slot
+        for t in rooms:
+            # if a room is not taken at a certain time save it for alternatives
+            if not t.taken:
+                schedule.freeSlots.append({i: t})
+            else:
+                t.taken = False
 
     for i in courses:
         if not i.shed:
-            if "mw" in i.time:
-                print(i)
             schedule.unScheduled.append(i)
 
     generate_alternatives(schedule)
@@ -425,30 +464,29 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
         if room.cap < course.cap:
             roomWeights[i] = -1
             i += 1
-            continue
-
-        # Get professor distance
-        if course.professor in professorToBuilding:
-            distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.name, buildings)
         else:
-            distFromProf = LARGESTDISTANCE
+            # Get professor distance
+            if course.professor in professorToBuilding:
+                distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.name, buildings)
+            else:
+                distFromProf = LARGESTDISTANCE
 
-            # Get subject distance
-        if course.subject in subjectToBuilding:
-            distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.name, buildings)
+                # Get subject distance
+            if course.subject in subjectToBuilding:
+                distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.name, buildings)
 
-        else:
-            distFromSubject = LARGESTDISTANCE
+            else:
+                distFromSubject = LARGESTDISTANCE
 
-        # calculate weight based on distances
-        # make distance negative (so large distance is worse) and shift up (so its positive)
-        profWeight = -distFromProf + LARGESTDISTANCE
-        subjectWeight = -distFromSubject + LARGESTDISTANCE
+            # calculate weight based on distances
+            # make distance negative (so large distance is worse) and shift up (so its positive)
+            profWeight = -distFromProf + LARGESTDISTANCE
+            subjectWeight = -distFromSubject + LARGESTDISTANCE
 
-        # apply weight multipliers then add to get roomweight
-        roomWeight = profWeight * PROFWEIGHTMUL + subjectWeight * SUBJECTWEIGHTMUL
-        roomWeights[i] = roomWeight
-        i += 1
+            # apply weight multipliers then add to get roomweight
+            roomWeight = profWeight * PROFWEIGHTMUL + subjectWeight * SUBJECTWEIGHTMUL
+            roomWeights[i] = roomWeight
+            i += 1
 
     return roomWeights
 
