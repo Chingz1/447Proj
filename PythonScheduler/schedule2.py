@@ -260,7 +260,7 @@ def main(inF, outF):
 
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
-# Input: A Schedule object, a list of Course objects, a list of room objects
+# Input: A Schedule object, a list of Course objects, a list of room objects, a  list  of buildings and a dict correlating subjects to building
 # Output: None
 def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
     # loop timeSlots for monday and wednesday
@@ -371,7 +371,7 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
         if not i.shed:
             schedule.unScheduled.append(i)
 
-    # generate altenatives
+    # generate alternatives
     generate_alternatives(schedule, rooms, buildings, subjectToBuilding)
 
     return
