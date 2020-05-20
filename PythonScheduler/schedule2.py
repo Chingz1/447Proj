@@ -2,27 +2,37 @@
 # Takes in 2 arguments: 1st arg - input .xlsx file, 2nd arg - output .xlsx file name
 # testing
 import pandas as pd
+
 if "pd" not in dir():
     raise ModuleNotFoundError("pandas import error")
 import xlrd
+
 if "xlrd" not in dir():
     raise ModuleNotFoundError("xlrd import error")
 import sys
+
 if "sys" not in dir():
     raise ModuleNotFoundError("sys import error")
 import os
+
 if "os" not in dir():
     raise ModuleNotFoundError("os import error")
 import xlsxwriter
+
 if "xlsxwriter" not in dir():
     raise ModuleNotFoundError("xlsxwriter import error")
 import datetime
+
 if "datetime" not in dir():
     raise ModuleNotFoundError("datetime import error")
-#import Stat
+from geopy.distance import geodesic
+import Stat
+import copy
+
 
 # Course object
 class Course(object):
+
     # Course constructor
     def __init__(self, subject, course, title, ver, sec, professor, time, cap):
         self.subject = subject
@@ -44,71 +54,94 @@ class Course(object):
     # course object print format
     def __repr__(self):
         if self.room is None:
-            return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.cap)
+
+            return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.sec)
         else:
-            return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.cap) + ", " + str(self.room)
+
+            return self.subject + " " + str(self.course) + " " + self.professor + " " + str(self.sec) + ", " + str(
+                self.room) + " " + str(self.Mtime)
+
+
 # room object
 class Room(object):
     # bool representing if room is in use or not false by default and is reset for every time slot
     taken = False
+
     # room constructor
     def __init__(self, name, cap):
         self.name = name
         self.cap = cap
+
     # room object print format
     def __repr__(self):
         return self.name
+
     def __str__(self):
         return self.name
+
+
 # schedule object
 class Schedule(object):
     # list to hold time slots available per day
-    mw = []  # monday & wednesday
-    tt = []  # tuesday & thursday
-    mwf = []  # monday, wednesday & friday
-    freeSlots = []  # available alternatives
-    #  1 X 5 2D array that hold final solution each internal array representing a day of the week
-    solution = [[], [], [], [], []]
-    unScheduled = []
+    def __init__(self):
+        self.mw = []  # monday & wednesday
+        self.tt = []  # tuesday & thursday
+        self.mwf = []  # monday, wednesday & friday
+        self.freeSlots = []  # available alternatives
+        #  1 X 5 2D array that hold final solution each internal array representing a day of the week
+        self.solution = [[], [], [], [], []]
+        self.unScheduled = []
+
+
 class Building(object):
-    def __init__(self, name, lat, long):
+    def __init__(self, name, lat, long, subject):
         self.name = name
         self.lat = lat
         self.long = long
+        self.subject = subject
+
     def __repr__(self):
-        return self.name + " lat = " + str(self.lat) + "lang = " + str(self.long)
+        return self.name + " lat = " + str(self.lat) + "lang = " + str(self.long) + self.subject
+
     def __str__(self):
-        return self.name + " lat = " + str(self.lat) + "lang = " + str(self.long)
+        return self.name + " lat = " + str(self.lat) + "lang = " + str(self.long) + self.subject
+
 
 # main: using a given input file creates the best possible schedule taking into account distance and capacity
 # Input: a .xlsx file containing a sheet for courses, rooms, and buildings
 # Output: a .xlsx file with the schedule, possible alternatives foe unscheduled classes, and statistics related to the schedule
-def main(inF,outF):
+def main(inF, outF):
     # use inline command holding the file name
-    file = inF#sys.argv[1]
+    file = inF
+
     # read in input file separated by sheets
     try:
         dataClasses = pd.read_excel(file, sheet_name='Schedule')  # reading file
     except Exception:
-        print("Error: There is no table in your classroom file titled 'Schedule'.")
+        raise Exception("Error: There is no table in your classroom file titled 'Schedule'.")
     try:
         dataRooms = pd.read_excel(file, sheet_name='Capacity')  # reading file
     except Exception:
-        print("Error: There is no table in your classroom file titled 'Capacity'.")
+        raise Exception("Error: There is no table in your classroom file titled 'Capacity'.")
     try:
         dataBuild = pd.read_excel(file, sheet_name='Coords')  # reading file
     except Exception:
-        print("Error: There is no table in your classroom file titled 'Coords'.")
+        raise Exception("Error: There is no table in your classroom file titled 'Coords'.")
+
     # convert pandas data frame into raw values
     courses = dataClasses.values
     rooms = dataRooms.values
     buildings = dataBuild.values
+
     # initialize arrays to hold room and course objects
     courseList = []
     roomList = []
     buildList = []
+    subjectTobuilding = {}
+
     # create schedule object
     spring2020 = Schedule()
+
     # import time slots into schedule based on days
     for i in dataClasses.Time:
         # if statement to separate slots based on days and to avoid repeats
@@ -116,19 +149,21 @@ def main(inF,outF):
             spring2020.mw.append(i.lower())
         if (("tt" in i) or ("TT" in i)) and not (i in spring2020.tt):
             spring2020.tt.append(i.lower())
-        if (("MWF" in i) or("mwf" in i)) and not (i in spring2020.mwf):
+
+        if (("MWF" in i) or ("mwf" in i)) and not (i in spring2020.mwf):
             spring2020.mwf.append(i.lower())
+
     # create courses and add to Course list
     for i in courses:
-        courseList.append(Course(i[0], i[1], i[2], i[3], i[4], i[5], i[6].lower(), i[7]))
+        # (self, subject, course, title, ver, sec, professor, time, cap):
+        courseList.append(Course(i[0], str(i[1]), i[2], i[3], i[4], i[5], i[6].lower(), i[7]))
+
     for i in courseList:
         if "mw" in i.time:
             if "mwf" in i.time:
                 i.days = "Mon/Wed/Fri"
                 temp = i.time.split("mwf")
                 i.Mtime = convert_Time(temp)
-
-
             else:
                 i.days = "Mon/Wed"
                 temp = i.time.split("mw")
@@ -141,42 +176,115 @@ def main(inF,outF):
     # create rooms and add to room list
     for i in rooms:
         roomList.append(Room(i[0], i[1]))
-    for i in buildings:
-        buildList.append(Building(i[0], i[1], i[2]))
-    # sort room list by capacity
-    roomList.sort(key=lambda room: room.cap)
 
-    generate_schedule(spring2020, courseList, roomList)
+    for i in range(len(buildings)):
+        buildList.append(Building(buildings[i][0], buildings[i][1], buildings[i][2], buildings[i][3]))
+        subjectTobuilding[buildList[i].subject] = buildList[i].name
+
+    warningTextFile = "warning.txt"
+    fo = open(warningTextFile, "w")
+    fo.write("Warnings:\n")
+    fo.close()
+
+    S1 = copy.deepcopy(spring2020)
+    S1c = copy.deepcopy(courseList)
+    S1r = copy.deepcopy(roomList)
+    S2 = copy.deepcopy(spring2020)
+    S2c = copy.deepcopy(courseList)
+    S2r = copy.deepcopy(roomList)
+    S3 = copy.deepcopy(spring2020)
+    S3c = copy.deepcopy(courseList)
+    S3r = copy.deepcopy(roomList)
+    S4 = copy.deepcopy(spring2020)
+    S4c = copy.deepcopy(courseList)
+    S4r = copy.deepcopy(roomList)
+    S5 = copy.deepcopy(spring2020)
+    S5c = copy.deepcopy(courseList)
+    S5r = copy.deepcopy(roomList)
+
+    generate_schedule(S1, S1c, S1r, buildList, subjectTobuilding)
+    spring2020 = copy.deepcopy(S1)
+    courseList = copy.deepcopy(S1c)
+    roomList = copy.deepcopy(S1r)
+
+    S2c.sort(key=lambda course: course.cap)
+
+    generate_schedule(S2, S2c, S2r, buildList, subjectTobuilding)
+    if len(S2.unScheduled) < len(spring2020.unScheduled):
+        spring2020 = copy.deepcopy(S2)
+        courseList = copy.deepcopy(S2c)
+        roomList = copy.deepcopy(S2r)
+
+    S3c.sort(key=lambda course: course.cap, reverse= True)
+
+    generate_schedule(S3, S3c, S3r, buildList, subjectTobuilding)
+    if len(S3.unScheduled) < len(spring2020.unScheduled):
+        spring2020 = copy.deepcopy(S3)
+        courseList = copy.deepcopy(S3c)
+        roomList = copy.deepcopy(S3r)
+
+
+    # sort room list by capacity
+    S4r.sort(key=lambda room: room.cap)
+
+    S4c.sort(key=lambda course: course.cap)
+
+    generate_schedule(S4, S4c, S4r, buildList, subjectTobuilding)
+    if len(S4.unScheduled) < len(spring2020.unScheduled):
+        spring2020 = copy.deepcopy(S4)
+        courseList = copy.deepcopy(S4c)
+        roomList = copy.deepcopy(S4r)
+
+    S5c.sort(key=lambda course: course.cap, reverse=True)
+    S5r.sort(key=lambda room: room.cap)
+
+    generate_schedule(S5, S5c, S5r, buildList, subjectTobuilding)
+    if len(S5.unScheduled) < len(spring2020.unScheduled):
+        spring2020 = copy.deepcopy(S5)
+        courseList = copy.deepcopy(S5c)
+        roomList = copy.deepcopy(S5r)
+
     spring2020.solution[0].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[1].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[2].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[3].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[4].sort(key=lambda course: course.Mtime.hour)
 
-    generate_output(spring2020, courseList,outF)
-    print_schedule(spring2020)
-    
-    #runthis = 'python3 Stat.py ' + sys.argv[2]
-    #os.system(runthis)
+    generate_output(spring2020, courseList, outF)
+    #print_schedule(spring2020)
+    Stat.main(outF)
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
 # Input: A Schedule object, a list of Course objects, a list of room objects
 # Output: None
-def generate_schedule(schedule, courses, rooms):
+def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
     # loop timeSlots for monday and wednesday
     for i in schedule.mw:
-        # loop all courses
         for j in courses:
-            # if the course time is for monday/wednesday or monday/wednesday/friday (checking for upper and lower case)
-            if j.time == i or "mwf" in j.time:
-                # loop through rooms
-                for k in rooms:
-                    # if the rooms cap is suitable and the room is not taken for the time slot and the course is not scheduled
-                    if (j.cap <= k.cap) and not k.taken and not j.shed:
-                        # mark rom as taken and course as scheduled
+            if i == j.time or "mwf" in j.time:
+                weights = calculateRoomWeights(j, rooms, {}, subjectToBuilding, 500, "warning.txt", buildings)
+                bestRoom = weights.index(max(weights))
+                w = max(weights)
+                temp = list(weights)
+                while not j.shed:
+
+                    if w <= 0:
+                        break
+                    if rooms[bestRoom].taken:
+                        del temp[temp.index(max(temp))]
+                        if len(temp) == 0:
+                            break
+                        w = max(temp)
+                        if w <= 0:
+                            break
+                        bestRoom = weights.index(max(temp))
+
+                    else:
+
                         j.shed = True
-                        j.room = k
-                        k.taken = True
+                        j.room = rooms[bestRoom]
+                        rooms[bestRoom].taken = True
+
                         # add course and room to solution list for monday and wednesday (added as dictionary)
                         schedule.solution[0].append(j)
                         schedule.solution[2].append(j)
@@ -188,51 +296,90 @@ def generate_schedule(schedule, courses, rooms):
             # if a room is not taken at a certain time save it for alternatives
             if not t.taken:
                 schedule.freeSlots.append({i: t})
-            t.taken = False
-    # same procedure as above loop but for time slots available tuesday and thursday
+            else:
+                t.taken = False
+
     for i in schedule.tt:
         for j in courses:
-            if j.time == i:
-                for k in rooms:
-                    if (j.cap <= k.cap) and not k.taken and not j.shed:
+            if i == j.time:
+                weights = calculateRoomWeights(j, rooms, {}, subjectToBuilding, 500, "warning.txt", buildings)
+                bestRoom = weights.index(max(weights))
+                w = max(weights)
+                temp = list(weights)
+                while not j.shed:
+
+                    if w == 0:
+                        break
+                    if rooms[bestRoom].taken:
+                        del temp[temp.index(max(temp))]
+                        if len(temp) == 0:
+                            break
+                        w = max(temp)
+                        if w <= 0:
+                            break
+                        bestRoom = weights.index(max(temp))
+                    else:
                         j.shed = True
-                        j.room = k
-                        k.taken = True
+                        j.room = rooms[bestRoom]
+                        rooms[bestRoom].taken = True
+                        # add course and room to solution list for monday and wednesday (added as dictionary)
                         schedule.solution[1].append(j)
                         schedule.solution[3].append(j)
+
+        # loop over all rooms and reset taken value for next time slot
         for t in rooms:
+            # if a room is not taken at a certain time save it for alternatives
             if not t.taken:
                 schedule.freeSlots.append({i: t})
-            t.taken = False
+            else:
+                t.taken = False
+
     for i in courses:
         if not i.shed:
             schedule.unScheduled.append(i)
-    generate_alternatives(schedule)
+
+    generate_alternatives(schedule, rooms, buildings, subjectToBuilding)
+
     return
+
+
 # generate_alternatives: finds unscheduled courses the three best alternative times
 # Input: A Schedule object
 # Output: None
-def generate_alternatives(schedule):
-    # loop over unscheduled classes
-    for course in schedule.unScheduled:
-        # loop over available classes
-        for slots in schedule.freeSlots:
-            # for time slots in free spaces
-            for keys in slots:
-                # if not fit into first slot found
-                if slots[keys].cap >= course.cap:
-                    course.alt.append(slots)
-            # limit to 3 alternatives max
-            if len(course.alt) > 2:
-                break
+def generate_alternatives(schedule, rooms, buildings, subjectToBuilding):
+    for i in schedule.freeSlots:
+        for j in schedule.unScheduled:
+            weights = calculateRoomWeights(j, rooms, {}, subjectToBuilding, 500, "warning.txt", buildings)
+            bestAlt = weights.index(max(weights))
+            w = max(weights)
+            temp = list(weights)
+            while len(j.alt) != 3:
+                for k in i:
+                    if rooms[bestAlt] == i[k]:
+                        j.alt.append(i)
+                del temp[temp.index(max(temp))]
+                if len(temp) == 0:
+                    break
+                w = max(temp)
+                if w <= 0:
+                    break
+                bestAlt = weights.index(max(temp))
+
     return
+
+
 # generate_output: creates an xlsx output file that contains the information of the scheduled and unscheduled classes
 # Input: A Schedule object, a list of Course objects
 # Output: None
-def generate_output(schedule, courses,outFile):
+def generate_output(schedule, courses, outF):
     # making a list that formats output info
     output_list = []
+    Sheader = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Days", "Time", "Room", "Status"]
+    output_list.append(Sheader)
     alt_list = []
+    Aheader = ["course", "alt1", "alt2", "alt3"]
+    alt_list.append(Aheader)
+
     # save scheduled courses as strings
     for solution in schedule.solution:
         for every in solution:
@@ -240,7 +387,8 @@ def generate_output(schedule, courses,outFile):
                 version = ""
             else:
                 version = every.ver
-            temp = [every.subject + " " + str(every.course), every.title, version, every.sec, every.professor, every.cap, every.days, str(every.Mtime), str(every.room), "scheduled"]
+            temp = [every.subject + " " + str(every.course), every.title, version, every.sec, every.professor,
+                    every.cap, every.days, str(every.Mtime), str(every.room), "scheduled"]
             if temp not in output_list:
                 output_list.append(temp)
 
@@ -252,44 +400,45 @@ def generate_output(schedule, courses,outFile):
             else:
                 version = i.ver
 
-            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "", "", "unscheduled"]
-            if temp not in output_list:
-                output_list.append(temp)
-            temp = [i.subject + " " + str(i.course) + i.title + str(i.sec) + i.professor]
+            #temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "", "",
+            #        "unscheduled"]
+            #if temp not in output_list:
+            #    output_list.append(temp)
+            alt1_list = [(str(k), str(v)) for k, v in i.alt[0].items()] 
+            alt2_list = [(str(k), str(v)) for k, v in i.alt[1].items()]
+            alt3_list = [(str(k), str(v)) for k, v in i.alt[2].items()]
+            alt1 = " in ".join(alt1_list[0])
+            alt2 = " in ".join(alt2_list[0])
+            alt3 = " in ".join(alt3_list[0])
+    
+            temp = [i.subject + " " + str(i.course) + "; " + i.title + "; " + str(i.sec) + "; " + i.professor,
+                    alt1, alt2, alt3]
             alt_list.append(temp)
+
     # writing to output excel workbook file that the user specifies as the second argument
-    out_workbook = xlsxwriter.Workbook(outFile)
+    out_workbook = xlsxwriter.Workbook(outF)
     # create sheet and header schedule
     scheduleSheet = out_workbook.add_worksheet('Schedule')
-    Sheader = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Days", "Time", "Room", "Status"]
+
     # add schedule
     for i in range(len(output_list)):
         for j in range(len(output_list[i])):
-            if i == 0:
-                scheduleSheet.write(i, j, Sheader[j])
+            scheduleSheet.write(i, j, output_list[i][j])
 
-            else:
-                scheduleSheet.write(i, j, output_list[i-1][j])
-
-
-    # create alternatives sheet and header
+    # create alternatives sheet
     altSheet = out_workbook.add_worksheet('Alternatives')
-    Aheader = ["course", "alt1", "alt2", "alt3"]
+
     # add alternatives
     for i in range(len(alt_list)):
-        for j in range(len(Aheader)):
-            if i == 0:
-                altSheet.write(i, j, Aheader[j])
-            elif j == 0:
-                altSheet.write(i, j, alt_list[i][j])
-            else:
-                if len(schedule.unScheduled[i].alt) != 0:
-                    altSheet.write(i, j, str(schedule.unScheduled[i].alt[j - 1]))
-                else:
-                    altSheet.write(i, j, "No alternatives")
+        for j in range(len(alt_list[i])):
+            altSheet.write(i, j, alt_list[i][j])
+
     # close workbook
     out_workbook.close()
+
     return
+
+
 # print_schedule: prints a given schedule by days ( for quick debugging purposes only)
 # Input: A Schedule object
 # Output: printed schedule
@@ -322,6 +471,7 @@ def print_schedule(schedule):
 
     return
 
+
 def convert_Time(temp):
     if len(temp[1]) <= 2:
         hour = int(temp[1])
@@ -342,8 +492,76 @@ def convert_Time(temp):
             hour += 12
         temp = temp[1].split(temp[1][0])
         minutes = int(temp[1])
-        return datetime.time(hour, minutes)
+    return datetime.time(hour, minutes)
+
+
+def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, LARGESTDISTANCE, warningTxt, buildings):
+    # Roomweight Formula Multipliers
+    SUBJECTWEIGHTMUL = 1
+    PROFWEIGHTMUL = 5
+
+    roomWeights = [None] * len(rooms)
+    i = 0
+    if not (course.professor in professorToBuilding):
+        fo = open(warningTxt, "a")
+        fo.write(str(
+            datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized professor \"" + course.professor + "\".\n")
+        fo.close()
+
+    if not (course.subject in subjectToBuilding):
+        fo = open(warningTxt, "a")
+        fo.write(str(
+            datetime.datetime.now()) + " The course \"" + course.title + "\" has unrecognized subject \"" + course.subject + "\".\n")
+        fo.close()
+    # loop and get weights
+    for room in rooms:
+        # can room hold course?
+        if room.cap < course.cap:
+            roomWeights[i] = -1
+            i += 1
+        else:
+            # Get professor distance
+            if course.professor in professorToBuilding:
+                distFromProf = calculateBuildingDistance(professorToBuilding[course.professor], room.name, buildings)
+            else:
+                distFromProf = LARGESTDISTANCE
+
+                # Get subject distance
+            if course.subject in subjectToBuilding:
+                distFromSubject = calculateBuildingDistance(subjectToBuilding[course.subject], room.name, buildings)
+
+            else:
+                distFromSubject = LARGESTDISTANCE
+
+            # calculate weight based on distances
+            # make distance negative (so large distance is worse) and shift up (so its positive)
+            profWeight = -distFromProf + LARGESTDISTANCE
+            subjectWeight = -distFromSubject + LARGESTDISTANCE
+
+            # apply weight multipliers then add to get roomweight
+            roomWeight = profWeight * PROFWEIGHTMUL + subjectWeight * SUBJECTWEIGHTMUL
+            roomWeights[i] = roomWeight
+            i += 1
+
+    return roomWeights
+
+
+def calculateBuildingDistance(buildingName, roomName, buildings):
+    for building in buildings:
+        if buildingName in building.name:
+            lat1 = building.lat
+            lon1 = building.long
+        if building.name in roomName:
+            lat2 = building.lat
+            lon2 = building.long
+    if lat1 == lat2 and lon1 == lon2:
+        return 0
+    location1 = (lat1, lon1)
+    location2 = (lat2, lon2)
+    distance = geodesic(location1, location2).meters
+
+    return distance
 
 
 if __name__ == "__main__":
-    main(sys.argv[1],sys.argv[2])
+    main(sys.argv[1], sys.argv[2])
