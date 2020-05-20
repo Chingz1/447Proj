@@ -391,6 +391,8 @@ def generate_alternatives(schedule, rooms, buildings, subjectToBuilding):
             while len(j.alt) != 3:
                 for k in i:
                     if rooms[bestAlt] == i[k]:
+                        if i in j.alt:
+                            break
                         j.alt.append(i)
                 del temp[temp.index(max(temp))]
                 if len(temp) == 0:
@@ -430,10 +432,9 @@ def generate_output(schedule, courses, outF):
     # adding unscheduled courses to the output and alt info list as strings
     for i in courses:
         if not i.shed:
-            # temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "", "",
-            #        "unscheduled"]
-            # if temp not in output_list:
-            #    output_list.append(temp)
+            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "", "", "unscheduled"]
+            if temp not in output_list:
+                output_list.append(temp)
             alt1_list = [(str(k), str(v)) for k, v in i.alt[0].items()]
             alt2_list = [(str(k), str(v)) for k, v in i.alt[1].items()]
             alt3_list = [(str(k), str(v)) for k, v in i.alt[2].items()]
@@ -513,14 +514,14 @@ def convert_Time(temp):
         hour = int(temp[1][0] + temp[1][1])
         if 1 <= hour <= 8:
             hour += 12
-        temp = temp[1].split(temp[1][1])
-        minutes = int(temp[2])
+        temp = temp[1][len(temp[1])-2:] 
+        minutes = int(temp)
         return datetime.time(hour, minutes)
     else:
         hour = int(temp[1][0])
         if 1 <= hour <= 8:
             hour += 12
-        temp = temp[1].split(temp[1][0])
+        temp = temp[1][len(temp[1])-2:]
         minutes = int(temp[1])
     return datetime.time(hour, minutes)
 
