@@ -37,6 +37,8 @@ def view_schedule():
     master.minsize(width=600, height=600)
     master.title('View Schedule')
     master.configure(bg=BACKGROUND)
+    
+    #configuring scrollbars and creating containers
     listbox = tk.Listbox(master, bg='white')
     scrollbar = tk.Scrollbar(listbox, orient='vertical')
     scrollbarx = tk.Scrollbar(listbox, orient='horizontal')
@@ -52,7 +54,8 @@ def view_schedule():
     excel_data_df = pd.read_excel(outFile, sheet_name="Schedule")
     data = excel_data_df.values.tolist()
     data.insert(0, header)
-
+    
+    #puts scheduled classes in a listbox to view
     for line in data:
         temp_line = ""
         if line[len(line) - 1].lower() == "scheduled" or line[len(line) - 1].lower() == "status":
@@ -97,19 +100,17 @@ def on_configure(event):
     canvas.configure(scrollregion=canvas.bbox('all'))
 
 
+#creates alternatives for unscheduled classes window
 def alternatives():
     master = tk.Tk()
-    # master.minsize(width = 600, height = 600)
     master.title('View Alternatives')
     master.configure(bg=BACKGROUND)
 
     # --- create canvas with scrollbar ---
     global canvas
     canvas = tk.Canvas(master, bg=BACKGROUND)
-    # canvas.pack(side="left")
 
     scrollbar = tk.Scrollbar(master, command=canvas.yview)
-    # scrollbar.pack(side="left", fill='y')
 
     canvas.configure(yscrollcommand=scrollbar.set)
 
@@ -126,8 +127,7 @@ def alternatives():
 
     # label at the top for users to understand the format of the window
     top_label = tk.Label(frame,
-                         text="The following classes were left unscheduled. The classes are expressed as: <Course>; <Title>; <Section>; <Professor>",
-                         bg=BACKGROUND, borderwidth=2, relief="sunken")
+                         text="The following classes were left unscheduled. The classes are expressed as: <Course>; <Title>; <Section>; <Professor>", bg=BACKGROUND, borderwidth=2, relief="sunken")
     top_label.pack(side='top', pady=10)
     for line in data:
         temp_line = ""
@@ -145,7 +145,7 @@ def alternatives():
 
     master.mainloop()
 
-
+#checking user entries for input and output files; moving on to generation
 def go(page, inF, outF):
     global inFile
     global outFile
@@ -163,13 +163,14 @@ def go(page, inF, outF):
     else:
         messagebox.showerror("File Error", "Both the input file and output file need to be xlsx files.")
 
-
+        
+#quit window function
 def quit_top(top, root):
     top.destroy()  # Removes the top level window
     root.destroy()  # Removes the hidden root window
     sys.exit()  # Ends the script
 
-
+#creating the main window
 class MainView(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
@@ -187,8 +188,7 @@ class MainView(tk.Frame):
         title_label.grid(row=0, column=0, columnspan=6, sticky=tk.N + tk.S + tk.E + tk.W)
 
         b2 = tk.Button(self, text="View Schedule", command=view_schedule, highlightthickness=0, bg=GOLD)
-        b3 = tk.Button(self, text="View Statistics", command=self.view_stats, highlightthickness=0,
-                       bg=GOLD)  # , command=p3.lift)
+        b3 = tk.Button(self, text="View Statistics", command=self.view_stats, highlightthickness=0,bg=GOLD)
         qb = tk.Button(self, text="Quit", command=lambda: sys.exit(), highlightthickness=0, padx=5, bg=GOLD)
         contact = tk.Button(self, text="Contact Us", command=self.contact_form, highlightthickness=0, padx=5, bg=GOLD)
 
@@ -248,6 +248,7 @@ class MainView(tk.Frame):
             tk.Grid.rowconfigure(frame, row_index, weight=1)
             for col_index in range(5):
                 tk.Grid.columnconfigure(frame, col_index, weight=1)
+                
         self.stats_file = "stats_" + outFile
         self.stat1_pic = "stat1_" + outFile[:len(outFile) - 4] + "png"
         self.stat2_pic = "stat2_" + outFile[:len(outFile) - 4] + "png"
@@ -309,14 +310,9 @@ class MainView(tk.Frame):
                 if row_index == 0:
                     color = 'black'
                     fcolor = 'white'
-                    tk.Label(frame, text=header[col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index,
-                                                                                      sticky=tk.N + tk.S + tk.E + tk.W,
-                                                                                      padx=5, pady=5)
+                    tk.Label(frame, text=header[col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index, sticky=tk.N + tk.S + tk.E + tk.W, padx=5, pady=5)
                 else:
-                    tk.Label(frame, text=data[row_index - 1][col_index], fg=fcolor, bg=color).grid(row=row_index,
-                                                                                                   column=col_index,
-                                                                                                   sticky=tk.N + tk.S,
-                                                                                                   padx=5, pady=5)
+                    tk.Label(frame, text=data[row_index - 1][col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index, sticky=tk.N + tk.S, padx=5, pady=5)
 
     # Creates a window containing raw data of hours in rooms per day and week
     def stat2_out(self):
@@ -341,14 +337,9 @@ class MainView(tk.Frame):
                 if row_index == 0:
                     color = 'black'
                     fcolor = 'white'
-                    tk.Label(frame, text=header[col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index,
-                                                                                      sticky=tk.N + tk.S + tk.E + tk.W,
-                                                                                      padx=5, pady=5)
+                    tk.Label(frame, text=header[col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index, sticky=tk.N + tk.S + tk.E + tk.W, padx=5, pady=5)
                 else:
-                    tk.Label(frame, text=data[row_index - 1][col_index], fg=fcolor, bg=color).grid(row=row_index,
-                                                                                                   column=col_index,
-                                                                                                   sticky=tk.N + tk.S,
-                                                                                                   padx=5, pady=5)
+                    tk.Label(frame, text=data[row_index - 1][col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index, sticky=tk.N + tk.S, padx=5, pady=5)
 
     # Creates a window containing raw data of classes booked per day
     def stat3_out(self):
@@ -373,14 +364,9 @@ class MainView(tk.Frame):
                 if row_index == 0:
                     color = 'black'
                     fcolor = 'white'
-                    tk.Label(frame, text=header[col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index,
-                                                                                      sticky=tk.N + tk.S + tk.E + tk.W,
-                                                                                      padx=5, pady=5)
+                    tk.Label(frame, text=header[col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index, sticky=tk.N + tk.S + tk.E + tk.W,padx=5, pady=5)
                 else:
-                    tk.Label(frame, text=data[row_index - 1][col_index], fg=fcolor, bg=color).grid(row=row_index,
-                                                                                                   column=col_index,
-                                                                                                   sticky=tk.N + tk.S,
-                                                                                                   padx=5, pady=5)
+                    tk.Label(frame, text=data[row_index - 1][col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index, sticky=tk.N + tk.S, padx=5, pady=5)
 
     # Creates a window containing raw data of classed booked per room per time slot
     def stat4_out(self):
@@ -394,7 +380,8 @@ class MainView(tk.Frame):
         excel_data_df = pd.read_excel(self.stats_file, sheet_name="Stat4")
         data = excel_data_df.values.tolist()
         data.insert(0, header)
-
+        
+        #putting all the data in a listbox
         for line in data:
             temp_line = ""
             for val in range(len(line)):
@@ -419,6 +406,8 @@ class MainView(tk.Frame):
 
         comment = str(self.name.get()) + ',' + str(self.email.get()) + ',' + str(self.concern.get()) + '\n'
         out_file = "user_comments.csv"
+        
+        #writes comment to file and does error checking
         if len(str(self.name.get()).strip()) == 0 or len(str(self.email.get()).strip()) == 0 or len(
                 str(self.concern.get()).strip()) == 0:
             tk.messagebox.showwarning(title="Warning",
@@ -462,6 +451,8 @@ if __name__ == "__main__":
 
     inputFile = ''
     ouputFile = ''
+    
+    #Creating widgets
     title_label = tk.Label(frame, text="Welcome to the Scheduler!", font=("Helvetica", 32), fg='white', bg='black')
     title_label.grid(row=0, column=0, columnspan=6, sticky=tk.N + tk.S + tk.E + tk.W)
     entry.bind('<Return>', lambda e: go(entry, inputFile, outputFile))
@@ -486,6 +477,8 @@ if __name__ == "__main__":
     button2.config(highlightthickness=0)
     button1.grid(row=3, column=4, sticky=tk.E + tk.W, padx=10, pady=5)
     button2.grid(row=3, column=5, sticky=tk.E + tk.W, padx=10, pady=5, ipadx=10)
+    
+    #hides root window
     root.withdraw()
 
     # Create main menu window
