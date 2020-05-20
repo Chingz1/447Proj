@@ -93,10 +93,14 @@ class Schedule(object):
 
 
 class Building(object):
+
     def __init__(self, name, lat, long, subject):
+        # Name of building
         self.name = name
+        # buildings latitude and longitude
         self.lat = lat
         self.long = long
+        # subject associated with building
         self.subject = subject
 
     def __repr__(self):
@@ -157,6 +161,7 @@ def main(inF, outF):
         # (self, subject, course, title, ver, sec, professor, time, cap):
         courseList.append(Course(i[0], str(i[1]), i[2], i[3], i[4], i[5], i[6].lower(), i[7]))
 
+    # convert given time value into to an easier to read and understand format
     for i in courseList:
         if "mw" in i.time:
             if "mwf" in i.time:
@@ -176,15 +181,18 @@ def main(inF, outF):
     for i in rooms:
         roomList.append(Room(i[0], i[1]))
 
+    # create building objects and add them to list
     for i in range(len(buildings)):
         buildList.append(Building(buildings[i][0], buildings[i][1], buildings[i][2], buildings[i][3]))
         subjectTobuilding[buildList[i].subject] = buildList[i].name
 
+    # warning file for error output during schedule generation
     warningTextFile = "warning.txt"
     fo = open(warningTextFile, "w")
     fo.write("Warnings:\n")
     fo.close()
 
+    # make 5 copies of schedule, courseList, and roomList
     S1 = copy.deepcopy(spring2020)
     S1c = copy.deepcopy(courseList)
     S1r = copy.deepcopy(roomList)
@@ -201,33 +209,37 @@ def main(inF, outF):
     S5c = copy.deepcopy(courseList)
     S5r = copy.deepcopy(roomList)
 
+    # First generated schedule rooms and courses in given order
     generate_schedule(S1, S1c, S1r, buildList, subjectTobuilding)
+    # set main schedule to S1
     spring2020 = copy.deepcopy(S1)
     courseList = copy.deepcopy(S1c)
     roomList = copy.deepcopy(S1r)
 
+    # organize courseList by capacity
     S2c.sort(key=lambda course: course.cap)
 
+    # second generated schedule room in given order courseList organized by cap G -> L
     generate_schedule(S2, S2c, S2r, buildList, subjectTobuilding)
+    # if schedule has less unscheduled classes than spring2020 make this spring 2020
     if len(S2.unScheduled) < len(spring2020.unScheduled):
         spring2020 = copy.deepcopy(S2)
         courseList = copy.deepcopy(S2c)
         roomList = copy.deepcopy(S2r)
 
-    S3c.sort(key=lambda course: course.cap, reverse= True)
-
+    S3c.sort(key=lambda course: course.cap, reverse=True)
+    # third generated schedule room in given order courseList organized by cap L -> G
     generate_schedule(S3, S3c, S3r, buildList, subjectTobuilding)
     if len(S3.unScheduled) < len(spring2020.unScheduled):
         spring2020 = copy.deepcopy(S3)
         courseList = copy.deepcopy(S3c)
         roomList = copy.deepcopy(S3r)
 
-
     # sort room list by capacity
     S4r.sort(key=lambda room: room.cap)
 
     S4c.sort(key=lambda course: course.cap)
-
+    # fourth generated schedule room organized by cap G -> l courseList organized by cap G -> l
     generate_schedule(S4, S4c, S4r, buildList, subjectTobuilding)
     if len(S4.unScheduled) < len(spring2020.unScheduled):
         spring2020 = copy.deepcopy(S4)
@@ -237,22 +249,24 @@ def main(inF, outF):
     S5c.sort(key=lambda course: course.cap, reverse=True)
     S5r.sort(key=lambda room: room.cap)
 
+    # fourth generated schedule room organized by cap G -> l courseList organized by cap L -> G
     generate_schedule(S5, S5c, S5r, buildList, subjectTobuilding)
     if len(S5.unScheduled) < len(spring2020.unScheduled):
         spring2020 = copy.deepcopy(S5)
         courseList = copy.deepcopy(S5c)
         roomList = copy.deepcopy(S5r)
 
+    # sort spring 2020 by time in days
     spring2020.solution[0].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[1].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[2].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[3].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[4].sort(key=lambda course: course.Mtime.hour)
 
+    # write schedule to output file
     generate_output(spring2020, courseList, outF)
-    print_schedule(spring2020)
-    # runthis = 'python3 Stat.py ' + sys.argv[2]
-    # os.system(runthis)
+    # print schedule (debugging only)
+    # print_schedule(spring2020)
 
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
@@ -260,17 +274,34 @@ def main(inF, outF):
 # Output: None
 def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
     # loop timeSlots for monday and wednesday
+    # list of professors to avoid professors teaching multiple classes at the same time
+    professors = []
+
+    # loop over  monday, wednesday and friday time slots
     for i in schedule.mw:
+        # clear professors for current time slot
+        professors.clear()
+        # loop over courses
         for j in courses:
+            # if current time slot matches courses
             if i == j.time or "mwf" in j.time:
+                # calculate weights for all rooms
                 weights = calculateRoomWeights(j, rooms, {}, subjectToBuilding, 500, "warning.txt", buildings)
+                # index for current best room
                 bestRoom = weights.index(max(weights))
+                # current highest weight
                 w = max(weights)
+                # temp weight list that we can edit without worry
                 temp = list(weights)
+                # while course is not scheduled
                 while not j.shed:
+                    # if professor is already teaching in this slot break
+                    if j.professor in professors:
+                        break
 
                     if w <= 0:
                         break
+                    # if best room is taken remove it form list and find next best room if one is available otherwise break
                     if rooms[bestRoom].taken:
                         del temp[temp.index(max(temp))]
                         if len(temp) == 0:
@@ -280,11 +311,13 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
                             break
                         bestRoom = weights.index(max(temp))
 
+                    # if current best room is free schedule course and add to appropriate list
                     else:
-
                         j.shed = True
                         j.room = rooms[bestRoom]
                         rooms[bestRoom].taken = True
+                        if j.professor != "Staff":
+                            professors.append(j.professor)
 
                         # add course and room to solution list for monday and wednesday (added as dictionary)
                         schedule.solution[0].append(j)
@@ -292,6 +325,7 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
                         # if course is also scheduled for friday add to solution list for friday
                         if "mwf" in j.time:
                             schedule.solution[4].append(j)
+
         # loop over all rooms and reset taken value for next time slot
         for t in rooms:
             # if a room is not taken at a certain time save it for alternatives
@@ -300,14 +334,19 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
             else:
                 t.taken = False
 
+    # exact same as above loop instead looping over tuesday thursday time slots
     for i in schedule.tt:
+        professors.clear()
         for j in courses:
             if i == j.time:
+
                 weights = calculateRoomWeights(j, rooms, {}, subjectToBuilding, 500, "warning.txt", buildings)
                 bestRoom = weights.index(max(weights))
                 w = max(weights)
                 temp = list(weights)
                 while not j.shed:
+                    if j.professor in professors:
+                        break
 
                     if w == 0:
                         break
@@ -323,6 +362,8 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
                         j.shed = True
                         j.room = rooms[bestRoom]
                         rooms[bestRoom].taken = True
+                        if j.professor != "Staff":
+                            professors.append(j.professor)
                         # add course and room to solution list for monday and wednesday (added as dictionary)
                         schedule.solution[1].append(j)
                         schedule.solution[3].append(j)
@@ -335,10 +376,12 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
             else:
                 t.taken = False
 
+    # add any unscheduled courses to correct list
     for i in courses:
         if not i.shed:
             schedule.unScheduled.append(i)
 
+    # generate altenatives
     generate_alternatives(schedule, rooms, buildings, subjectToBuilding)
 
     return
@@ -348,6 +391,7 @@ def generate_schedule(schedule, courses, rooms, buildings, subjectToBuilding):
 # Input: A Schedule object
 # Output: None
 def generate_alternatives(schedule, rooms, buildings, subjectToBuilding):
+    # smaller version of loop used in generate schedule except finding 3 of the best alternatives
     for i in schedule.freeSlots:
         for j in schedule.unScheduled:
             weights = calculateRoomWeights(j, rooms, {}, subjectToBuilding, 500, "warning.txt", buildings)
@@ -542,6 +586,7 @@ def calculateRoomWeights(course, rooms, professorToBuilding, subjectToBuilding, 
 
 
 def calculateBuildingDistance(buildingName, roomName, buildings):
+    # find buildings and lat and long
     for building in buildings:
         if buildingName in building.name:
             lat1 = building.lat
@@ -549,8 +594,12 @@ def calculateBuildingDistance(buildingName, roomName, buildings):
         if building.name in roomName:
             lat2 = building.lat
             lon2 = building.long
+
+    # if both buildings the same retuen distence 0
     if lat1 == lat2 and lon1 == lon2:
         return 0
+
+    # claculate distance between 2 buldings and return value
     location1 = (lat1, lon1)
     location2 = (lat2, lon2)
     distance = geodesic(location1, location2).meters
