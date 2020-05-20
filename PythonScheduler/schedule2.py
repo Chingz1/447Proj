@@ -14,6 +14,7 @@ import sys
 if "sys" not in dir():
     raise ModuleNotFoundError("sys import error")
 import os
+
 if "os" not in dir():
     raise ModuleNotFoundError("os import error")
 import xlsxwriter
@@ -25,7 +26,7 @@ import datetime
 if "datetime" not in dir():
     raise ModuleNotFoundError("datetime import error")
 from geopy.distance import geodesic
-
+import copy
 
 
 # Course object
@@ -77,18 +78,18 @@ class Room(object):
     def __str__(self):
         return self.name
 
+
 # schedule object
 class Schedule(object):
     # list to hold time slots available per day
-    mw = []  # monday & wednesday
-    tt = []  # tuesday & thursday
-    mwf = []  # monday, wednesday & friday
-
-    freeSlots = []  # available alternatives
-
-    #  1 X 5 2D array that hold final solution each internal array representing a day of the week
-    solution = [[], [], [], [], []]
-    unScheduled = []
+    def __init__(self):
+        self.mw = []  # monday & wednesday
+        self.tt = []  # tuesday & thursday
+        self.mwf = []  # monday, wednesday & friday
+        self.freeSlots = []  # available alternatives
+        #  1 X 5 2D array that hold final solution each internal array representing a day of the week
+        self.solution = [[], [], [], [], []]
+        self.unScheduled = []
 
 
 class Building(object):
@@ -108,7 +109,7 @@ class Building(object):
 # main: using a given input file creates the best possible schedule taking into account distance and capacity
 # Input: a .xlsx file containing a sheet for courses, rooms, and buildings
 # Output: a .xlsx file with the schedule, possible alternatives foe unscheduled classes, and statistics related to the schedule
-def main(inF,outF):
+def main(inF, outF):
     # use inline command holding the file name
     file = inF
 
@@ -151,7 +152,6 @@ def main(inF,outF):
         if (("MWF" in i) or ("mwf" in i)) and not (i in spring2020.mwf):
             spring2020.mwf.append(i.lower())
 
-
     # create courses and add to Course list
     for i in courses:
         # (self, subject, course, title, ver, sec, professor, time, cap):
@@ -180,14 +180,68 @@ def main(inF,outF):
         buildList.append(Building(buildings[i][0], buildings[i][1], buildings[i][2], buildings[i][3]))
         subjectTobuilding[buildList[i].subject] = buildList[i].name
 
-    # sort room list by capacity
-    roomList.sort(key=lambda room: room.cap)
     warningTextFile = "warning.txt"
     fo = open(warningTextFile, "w")
     fo.write("Warnings:\n")
     fo.close()
 
-    generate_schedule(spring2020, courseList, roomList, buildList, subjectTobuilding)
+    S1 = copy.deepcopy(spring2020)
+    S1c = copy.deepcopy(courseList)
+    S1r = copy.deepcopy(roomList)
+    S2 = copy.deepcopy(spring2020)
+    S2c = copy.deepcopy(courseList)
+    S2r = copy.deepcopy(roomList)
+    S3 = copy.deepcopy(spring2020)
+    S3c = copy.deepcopy(courseList)
+    S3r = copy.deepcopy(roomList)
+    S4 = copy.deepcopy(spring2020)
+    S4c = copy.deepcopy(courseList)
+    S4r = copy.deepcopy(roomList)
+    S5 = copy.deepcopy(spring2020)
+    S5c = copy.deepcopy(courseList)
+    S5r = copy.deepcopy(roomList)
+
+    generate_schedule(S1, S1c, S1r, buildList, subjectTobuilding)
+    spring2020 = copy.deepcopy(S1)
+    courseList = copy.deepcopy(S1c)
+    roomList = copy.deepcopy(S1r)
+
+    S2c.sort(key=lambda course: course.cap)
+
+    generate_schedule(S2, S2c, S2r, buildList, subjectTobuilding)
+    if len(S2.unScheduled) < len(spring2020.unScheduled):
+        spring2020 = copy.deepcopy(S2)
+        courseList = copy.deepcopy(S2c)
+        roomList = copy.deepcopy(S2r)
+
+    S3c.sort(key=lambda course: course.cap, reverse= True)
+
+    generate_schedule(S3, S3c, S3r, buildList, subjectTobuilding)
+    if len(S3.unScheduled) < len(spring2020.unScheduled):
+        spring2020 = copy.deepcopy(S3)
+        courseList = copy.deepcopy(S3c)
+        roomList = copy.deepcopy(S3r)
+
+
+    # sort room list by capacity
+    S4r.sort(key=lambda room: room.cap)
+
+    S4c.sort(key=lambda course: course.cap)
+
+    generate_schedule(S4, S4c, S4r, buildList, subjectTobuilding)
+    if len(S4.unScheduled) < len(spring2020.unScheduled):
+        spring2020 = copy.deepcopy(S4)
+        courseList = copy.deepcopy(S4c)
+        roomList = copy.deepcopy(S4r)
+
+    S5c.sort(key=lambda course: course.cap, reverse=True)
+    S5r.sort(key=lambda room: room.cap)
+
+    generate_schedule(S5, S5c, S5r, buildList, subjectTobuilding)
+    if len(S5.unScheduled) < len(spring2020.unScheduled):
+        spring2020 = copy.deepcopy(S5)
+        courseList = copy.deepcopy(S5c)
+        roomList = copy.deepcopy(S5r)
 
     spring2020.solution[0].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[1].sort(key=lambda course: course.Mtime.hour)
@@ -195,10 +249,11 @@ def main(inF,outF):
     spring2020.solution[3].sort(key=lambda course: course.Mtime.hour)
     spring2020.solution[4].sort(key=lambda course: course.Mtime.hour)
 
-    generate_output(spring2020, courseList,outF)
+    generate_output(spring2020, courseList, outF)
     print_schedule(spring2020)
     # runthis = 'python3 Stat.py ' + sys.argv[2]
     # os.system(runthis)
+
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
 # Input: A Schedule object, a list of Course objects, a list of room objects
@@ -310,19 +365,21 @@ def generate_alternatives(schedule, rooms, buildings, subjectToBuilding):
                 if w <= 0:
                     break
                 bestAlt = weights.index(max(temp))
-    for i in schedule.unScheduled:
-        for j in i.alt:
-            print(i ,j )
+
     return
 
 
 # generate_output: creates an xlsx output file that contains the information of the scheduled and unscheduled classes
 # Input: A Schedule object, a list of Course objects
 # Output: None
-def generate_output(schedule, courses,outF):
+def generate_output(schedule, courses, outF):
     # making a list that formats output info
     output_list = []
+    Sheader = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Days", "Time", "Room", "Status"]
+    output_list.append(Sheader)
     alt_list = []
+    Aheader = ["course", "alt1", "alt2", "alt3"]
+    alt_list.append(Aheader)
 
     # save scheduled courses as strings
     for solution in schedule.solution:
@@ -349,47 +406,34 @@ def generate_output(schedule, courses,outF):
             if temp not in output_list:
                 output_list.append(temp)
 
-            temp = [i.subject + " " + str(i.course) + i.title + str(i.sec) + i.professor]
+            temp = [i.subject + " " + str(i.course) + " " + i.title + " " + str(i.sec) + " " + i.professor,
+                    str(i.alt[0]), str(i.alt[1]), str(i.alt[2])]
             alt_list.append(temp)
 
     # writing to output excel workbook file that the user specifies as the second argument
     out_workbook = xlsxwriter.Workbook(outF)
     # create sheet and header schedule
     scheduleSheet = out_workbook.add_worksheet('Schedule')
-    Sheader = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Days", "Time", "Room", "Status"]
+
     # add schedule
     for i in range(len(output_list)):
         for j in range(len(output_list[i])):
-            if i == 0:
-                scheduleSheet.write(i, j, Sheader[j])
+            scheduleSheet.write(i, j, output_list[i][j])
 
-            else:
-                scheduleSheet.write(i, j, output_list[i - 1][j])
-
-    # create alternatives sheet and header
+    # create alternatives sheet
     altSheet = out_workbook.add_worksheet('Alternatives')
-    Aheader = ["course", "alt1", "alt2", "alt3"]
 
     # add alternatives
     for i in range(len(alt_list)):
-        for j in range(len(Aheader)):
-            if i == 0:
-                altSheet.write(i, j, Aheader[j])
-
-            elif j == 0:
-
-                altSheet.write(i, j, alt_list[i][j])
-            else:
-
-                if len(schedule.unScheduled[i].alt) != 0:
-                    altSheet.write(i, j, str(schedule.unScheduled[i].alt[j - 1]))
-                else:
-                    altSheet.write(i, j, "No alternatives")
+        for j in range(len(alt_list[i])):
+            altSheet.write(i, j, alt_list[i][j])
 
     # close workbook
     out_workbook.close()
 
     return
+
+
 # print_schedule: prints a given schedule by days ( for quick debugging purposes only)
 # Input: A Schedule object
 # Output: printed schedule
@@ -421,6 +465,7 @@ def print_schedule(schedule):
         print(i)
 
     return
+
 
 def convert_Time(temp):
     if len(temp[1]) <= 2:
