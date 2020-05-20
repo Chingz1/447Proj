@@ -5,18 +5,12 @@ import pandas as pd
 
 if "pd" not in dir():
     raise ModuleNotFoundError("pandas import error")
-import xlrd
 
-if "xlrd" not in dir():
-    raise ModuleNotFoundError("xlrd import error")
 import sys
 
 if "sys" not in dir():
     raise ModuleNotFoundError("sys import error")
-import os
 
-if "os" not in dir():
-    raise ModuleNotFoundError("os import error")
 import xlsxwriter
 
 if "xlsxwriter" not in dir():
@@ -26,6 +20,7 @@ import datetime
 if "datetime" not in dir():
     raise ModuleNotFoundError("datetime import error")
 from geopy.distance import geodesic
+import Stat
 import copy
 
 
@@ -214,7 +209,6 @@ def main(inF, outF):
     # set main schedule to S1
     spring2020 = copy.deepcopy(S1)
     courseList = copy.deepcopy(S1c)
-    roomList = copy.deepcopy(S1r)
 
     # organize courseList by capacity
     S2c.sort(key=lambda course: course.cap)
@@ -225,7 +219,6 @@ def main(inF, outF):
     if len(S2.unScheduled) < len(spring2020.unScheduled):
         spring2020 = copy.deepcopy(S2)
         courseList = copy.deepcopy(S2c)
-        roomList = copy.deepcopy(S2r)
 
     S3c.sort(key=lambda course: course.cap, reverse=True)
     # third generated schedule room in given order courseList organized by cap L -> G
@@ -233,7 +226,6 @@ def main(inF, outF):
     if len(S3.unScheduled) < len(spring2020.unScheduled):
         spring2020 = copy.deepcopy(S3)
         courseList = copy.deepcopy(S3c)
-        roomList = copy.deepcopy(S3r)
 
     # sort room list by capacity
     S4r.sort(key=lambda room: room.cap)
@@ -244,7 +236,6 @@ def main(inF, outF):
     if len(S4.unScheduled) < len(spring2020.unScheduled):
         spring2020 = copy.deepcopy(S4)
         courseList = copy.deepcopy(S4c)
-        roomList = copy.deepcopy(S4r)
 
     S5c.sort(key=lambda course: course.cap, reverse=True)
     S5r.sort(key=lambda room: room.cap)
@@ -254,7 +245,6 @@ def main(inF, outF):
     if len(S5.unScheduled) < len(spring2020.unScheduled):
         spring2020 = copy.deepcopy(S5)
         courseList = copy.deepcopy(S5c)
-        roomList = copy.deepcopy(S5r)
 
     # sort spring 2020 by time in days
     spring2020.solution[0].sort(key=lambda course: course.Mtime.hour)
@@ -265,8 +255,8 @@ def main(inF, outF):
 
     # write schedule to output file
     generate_output(spring2020, courseList, outF)
-    # print schedule (debugging only)
     # print_schedule(spring2020)
+    Stat.main(outF)
 
 
 # generate_schedule: populates an empty schedule with courses and their rooms as well as create alternatives
@@ -440,18 +430,19 @@ def generate_output(schedule, courses, outF):
     # adding unscheduled courses to the output and alt info list as strings
     for i in courses:
         if not i.shed:
-            if str(i.ver) == 'nan':
-                version = ""
-            else:
-                version = i.ver
+            # temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "", "",
+            #        "unscheduled"]
+            # if temp not in output_list:
+            #    output_list.append(temp)
+            alt1_list = [(str(k), str(v)) for k, v in i.alt[0].items()]
+            alt2_list = [(str(k), str(v)) for k, v in i.alt[1].items()]
+            alt3_list = [(str(k), str(v)) for k, v in i.alt[2].items()]
+            alt1 = " in ".join(alt1_list[0])
+            alt2 = " in ".join(alt2_list[0])
+            alt3 = " in ".join(alt3_list[0])
 
-            temp = [i.subject + " " + str(i.course), i.title, version, i.sec, i.professor, i.cap, "", "", "",
-                    "unscheduled"]
-            if temp not in output_list:
-                output_list.append(temp)
-
-            temp = [i.subject + " " + str(i.course) + " " + i.title + " " + str(i.sec) + " " + i.professor,
-                    str(i.alt[0]), str(i.alt[1]), str(i.alt[2])]
+            temp = [i.subject + " " + str(i.course) + "; " + i.title + "; " + str(i.sec) + "; " + i.professor,
+                    alt1, alt2, alt3]
             alt_list.append(temp)
 
     # writing to output excel workbook file that the user specifies as the second argument
@@ -595,11 +586,11 @@ def calculateBuildingDistance(buildingName, roomName, buildings):
             lat2 = building.lat
             lon2 = building.long
 
-    # if both buildings the same retuen distence 0
+    # if both buildings the same return distance 0
     if lat1 == lat2 and lon1 == lon2:
         return 0
 
-    # claculate distance between 2 buldings and return value
+    # calculate distance between 2 buildings and return value
     location1 = (lat1, lon1)
     location2 = (lat2, lon2)
     distance = geodesic(location1, location2).meters

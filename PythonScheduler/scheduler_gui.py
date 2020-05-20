@@ -12,44 +12,29 @@ global G_out
 global inFile
 global outFile
 PIPE = '|'
+
 # colors
 GOLD = '#ffbf00'
 BACKGROUND = '#FFF8F4'
 
 
-class Page(tk.Frame):
-    def __init__(self, *args, **kwargs):
-        tk.Frame.__init__(self, *args, **kwargs, bg='blue')
-
-    def show(self):
-        self.lift()
-
-
-##class Page1(Page):
-#   def __init__(self, *args, **kwargs):
-#       Page.__init__(self, *args, **kwargs)
-#      label = tk.Label(self, text="Welcome to the Schedule Generator!")
-#     label.pack(side='bottom', anchor=tk.S, fill="both", expand=True)
-
-
+# Close window warning
 def on_closing():
     if messagebox.askokcancel("Quit", "Hold up! Closing this window will quit the program. Do you want to quit?"):
         root.destroy()
         sys.exit()
 
 
+# generates the schedule by running the scheduler
 def generate():
-    runthis = 'schedule2.py ' + inFile + ' ' + outFile
-    # exec(open("./"+runthis).read())
     schedule2.main(inFile, outFile)
-    # os.system(runthis)
 
 
+# Creates a window that allows user to view the entire schedule
+# Columns line up while using Xming to view the GUI
 def view_schedule():
     master = tk.Tk()
     master.minsize(width=600, height=600)
-    scrollbar = tk.Scrollbar(master, orient='vertical')
-    scrollbarx = tk.Scrollbar(master, orient='horizontal')
     master.title('View Schedule')
     master.configure(bg=BACKGROUND)
     listbox = tk.Listbox(master, bg='white')
@@ -57,26 +42,22 @@ def view_schedule():
     scrollbarx = tk.Scrollbar(listbox, orient='horizontal')
     listbox.config(xscrollcommand=scrollbarx.set, yscrollcommand=scrollbar.set)
     scrollbarx.config(command=listbox.xview)
-    scrollbar.config(command=listbox.yview)  # _scroll)
-    # _scroll)
+    scrollbar.config(command=listbox.yview)
     scrollbar.pack(side="right", fill=tk.Y, expand=False)
     scrollbarx.pack(side="bottom", fill=tk.X, expand=False)
-    # df = pd.read_excel(outFile, sheet_name='Schedule')
-    # sched_list = df.values.tolist()
-    # print_out_list = {"Scheduled:": [], "Unscheduled:": []}
-    # plan: make a label for scheduled and unscheduled, then put scheduled in a list box, then make a button for unscheduled classes?
-    s_label = tk.Label(master, text="Scheduled:", bg=BACKGROUND)
-    s_label.pack(side='top')
-    # header = ["Course","Title","Version","Section","Professor","Capacity","Days","Time","Room","Status"]
-    header = ["Course", "Title", "Professor", "Capacity", "Days", "Time", "Room"]
+
+    s_label = tk.Label(master, text="Scheduled Classes:", bg=BACKGROUND)
+    s_label.pack(side='top', pady=10)
+    header = ["Course", "Title", "Version", "Section", "Professor", "Capacity", "Days", "Time", "Room", "Status"]
     excel_data_df = pd.read_excel(outFile, sheet_name="Schedule")
     data = excel_data_df.values.tolist()
     data.insert(0, header)
+
     for line in data:
         temp_line = ""
         if line[len(line) - 1].lower() == "scheduled" or line[len(line) - 1].lower() == "status":
             for val in range(len(line)):
-                if val == len(line) - 1 or val == 2 or val == 3:
+                if val == len(line) - 1 or val == 2:
                     temp_line = temp_line
                 else:
                     temp_line = temp_line + str(line[val])
@@ -87,7 +68,9 @@ def view_schedule():
                     elif val == 6 or val == 0 or val == 7:
                         chars = 15
                     elif val == 5:
-                        chars = 7
+                        chars = 11
+                    elif val == 3:
+                        chars = 10
                     else:
                         chars = 24
                     spaces = chars - len(str(line[val]))
@@ -96,18 +79,11 @@ def view_schedule():
                     else:
                         temp_line = temp_line + " " * spaces
             listbox.insert(tk.END, temp_line)
+    listbox.insert(tk.END)
+    listbox.insert(tk.END)
 
-    # for i in range(len(sched_list)):
-    #    if sched_list[i][len(sched_list[i]) - 1].lower() == "scheduled":
-    #        print_out_list["Scheduled:"].append(sched_list[i][:len(sched_list[i]) - 1])
-    #    else:
-    #        print_out_list["Unscheduled:"].append(sched_list[i][:len(sched_list[i]) - 1])
-
-    # for key in print_out_list.keys():
-    #    listbox.insert(tk.END, key)
-    #    for i in range(len(print_out_list[key])):
-    #        listbox.insert(tk.END, str(print_out_list[key][i]))
-    u_button = tk.Button(master, text="Unscheduled", highlightthickness=0, padx=5, bg=GOLD)
+    u_button = tk.Button(master, text="Unscheduled Alternatives", command=alternatives, highlightthickness=0, padx=5,
+                         bg=GOLD)
     listbox.pack(side="top", fill=tk.BOTH, expand=True)
     u_button.pack(side="top")
 
@@ -115,9 +91,65 @@ def view_schedule():
     master.mainloop()
 
 
+def on_configure(event):
+    # update scroll region after starting 'mainloop'
+    # when all widgets are in canvas
+    canvas.configure(scrollregion=canvas.bbox('all'))
+
+
+def alternatives():
+    master = tk.Tk()
+    # master.minsize(width = 600, height = 600)
+    master.title('View Alternatives')
+    master.configure(bg=BACKGROUND)
+
+    # --- create canvas with scrollbar ---
+    global canvas
+    canvas = tk.Canvas(master, bg=BACKGROUND)
+    # canvas.pack(side="left")
+
+    scrollbar = tk.Scrollbar(master, command=canvas.yview)
+    # scrollbar.pack(side="left", fill='y')
+
+    canvas.configure(yscrollcommand=scrollbar.set)
+
+    # update scroll region after starting 'mainloop'
+    # when all widgets are in canvas
+    canvas.bind('<Configure>', on_configure)
+
+    frame = tk.Frame(canvas, bg=BACKGROUND)
+    canvas.create_window((0, 0), window=frame, anchor='nw')
+
+    # reads data in
+    excel_data_df = pd.read_excel(outFile, sheet_name="Alternatives")
+    data = excel_data_df.values.tolist()
+
+    # label at the top for users to understand the format of the window
+    top_label = tk.Label(frame,
+                         text="The following classes were left unscheduled. The classes are expressed as: <Course>; <Title>; <Section>; <Professor>",
+                         bg=BACKGROUND, borderwidth=2, relief="sunken")
+    top_label.pack(side='top', pady=10)
+    for line in data:
+        temp_line = ""
+        c_label = tk.Label(frame, text="Alternatives for - " + line[0], bg=BACKGROUND)
+        c_label.pack(side='top')
+        listbox = tk.Listbox(frame, bg='white')
+        listbox.insert(tk.END, line[1])
+        listbox.insert(tk.END, line[2])
+        listbox.insert(tk.END, line[3])
+        listbox.insert(tk.END)
+        listbox.pack(side="top", fill=tk.BOTH, expand=True)
+
+    canvas.pack(side="left", fill=tk.BOTH, expand=True)
+    scrollbar.pack(side="left", fill='y')
+
+    master.mainloop()
+
+
 def go(page, inF, outF):
     global inFile
     global outFile
+
     # do error checking for input and output files here
     inFile = str(inF.get())
     outFile = str(outF.get())
@@ -125,7 +157,7 @@ def go(page, inF, outF):
         if os.path.isfile(inFile):
             generate()
             root.deiconify()  # Unhides the root window
-            page.destroy()  # Removes the toplevel window
+            page.destroy()  # Removes the top level window
         else:
             messagebox.showerror("File Error", "Input file could not be found.")
     else:
@@ -133,7 +165,7 @@ def go(page, inF, outF):
 
 
 def quit_top(top, root):
-    top.destroy()  # Removes the toplevel window
+    top.destroy()  # Removes the top level window
     root.destroy()  # Removes the hidden root window
     sys.exit()  # Ends the script
 
@@ -202,6 +234,7 @@ class MainView(tk.Frame):
         self.form.bind('<Return>', lambda e: self.comment_file())
         submit_b.grid(row=4, column=1, sticky=tk.E + tk.W)
 
+    # Opens up a new window for a the information for statistics
     def view_stats(self):
         self.stats = tk.Toplevel(self, bg=BACKGROUND)
         self.stats.title('Statistics')
@@ -216,11 +249,9 @@ class MainView(tk.Frame):
             for col_index in range(5):
                 tk.Grid.columnconfigure(frame, col_index, weight=1)
         self.stats_file = "stats_" + outFile
-        print(self.stats_file)
         self.stat1_pic = "stat1_" + outFile[:len(outFile) - 4] + "png"
         self.stat2_pic = "stat2_" + outFile[:len(outFile) - 4] + "png"
         self.stat3_pic = "stat3_" + outFile[:len(outFile) - 4] + "png"
-        print(self.stat1_pic)
 
         title_label = tk.Label(frame, text="Statistics for the Schedule", font=("Helvetica", 32), fg='white',
                                bg='black')
@@ -244,6 +275,7 @@ class MainView(tk.Frame):
         stat3.image = photo3  # keep a reference!
         stat3.grid(row=2, column=2, sticky=tk.E + tk.W + tk.S + tk.N)
 
+        # Create buttons for user to view the raw data of each statistic
         b_stat1 = tk.Button(frame, text="Room usage by Time", command=self.stat1_out, bg=GOLD, highlightthickness=0)
         b_stat1.grid(row=3, column=1, sticky=tk.E + tk.W + tk.S + tk.N)
         b_stat2 = tk.Button(frame, text="Hours in Rooms", command=self.stat2_out, bg=GOLD, highlightthickness=0)
@@ -254,6 +286,7 @@ class MainView(tk.Frame):
                             highlightthickness=0)
         b_stat4.grid(row=4, column=1, columnspan=3, sticky=tk.E + tk.W + tk.S + tk.N)
 
+    # Creates a window containing raw data of room usage by time
     def stat1_out(self):
         self.stats1 = tk.Toplevel(self.stats, bg=BACKGROUND)
         self.stats1.title('Room usage by Time')
@@ -267,28 +300,25 @@ class MainView(tk.Frame):
         header = ["Classroom", "Number of Courses Booked in a Day"]
         excel_data_df = pd.read_excel(self.stats_file, sheet_name="Stat1")
         data = excel_data_df.values.tolist()
-        print(data)
-        for row_index in range(len(data)):
+        for row_index in range(len(data) + 1):
             tk.Grid.rowconfigure(frame, row_index, weight=1)
             for col_index in range(len(header)):
+                color = BACKGROUND
+                fcolor = 'black'
                 tk.Grid.columnconfigure(frame, col_index, weight=1)
                 if row_index == 0:
-                    color = BACKGROUND
-                    fcolor = 'black'
-                    if col_index % 2 == 0:
-                        color = 'black'
-                        fcolor = 'white'
-                    else:
-                        color = 'white'
+                    color = 'black'
+                    fcolor = 'white'
                     tk.Label(frame, text=header[col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index,
-                                                                                      sticky=tk.N + tk.S, padx=5,
-                                                                                      pady=5)
+                                                                                      sticky=tk.N + tk.S + tk.E + tk.W,
+                                                                                      padx=5, pady=5)
                 else:
-                    tk.Label(frame, text=data[row_index][col_index], fg=fcolor, bg=color).grid(row=row_index,
-                                                                                               column=col_index,
-                                                                                               sticky=tk.N + tk.S,
-                                                                                               padx=5, pady=5)
+                    tk.Label(frame, text=data[row_index - 1][col_index], fg=fcolor, bg=color).grid(row=row_index,
+                                                                                                   column=col_index,
+                                                                                                   sticky=tk.N + tk.S,
+                                                                                                   padx=5, pady=5)
 
+    # Creates a window containing raw data of hours in rooms per day and week
     def stat2_out(self):
         self.stats2 = tk.Toplevel(self.stats, bg=BACKGROUND)
         self.stats2.title('Hours in Rooms')
@@ -302,28 +332,25 @@ class MainView(tk.Frame):
         header = ["Classroom", "Total Number of Hours per Day", "Total Number of Hours per Week"]
         excel_data_df = pd.read_excel(self.stats_file, sheet_name="Stat2")
         data = excel_data_df.values.tolist()
-        print(data)
-        for row_index in range(len(data)):
+        for row_index in range(len(data) + 1):
             tk.Grid.rowconfigure(frame, row_index, weight=1)
             for col_index in range(len(header)):
+                color = BACKGROUND
+                fcolor = 'black'
                 tk.Grid.columnconfigure(frame, col_index, weight=1)
                 if row_index == 0:
-                    color = BACKGROUND
-                    fcolor = 'black'
-                    if col_index % 2 == 0:
-                        color = 'black'
-                        fcolor = 'white'
-                    else:
-                        color = 'white'
+                    color = 'black'
+                    fcolor = 'white'
                     tk.Label(frame, text=header[col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index,
-                                                                                      sticky=tk.N + tk.S, padx=5,
-                                                                                      pady=5)
+                                                                                      sticky=tk.N + tk.S + tk.E + tk.W,
+                                                                                      padx=5, pady=5)
                 else:
-                    tk.Label(frame, text=data[row_index][col_index], fg=fcolor, bg=color).grid(row=row_index,
-                                                                                               column=col_index,
-                                                                                               sticky=tk.N + tk.S,
-                                                                                               padx=5, pady=5)
+                    tk.Label(frame, text=data[row_index - 1][col_index], fg=fcolor, bg=color).grid(row=row_index,
+                                                                                                   column=col_index,
+                                                                                                   sticky=tk.N + tk.S,
+                                                                                                   padx=5, pady=5)
 
+    # Creates a window containing raw data of classes booked per day
     def stat3_out(self):
         self.stats3 = tk.Toplevel(self.stats, bg=BACKGROUND)
         self.stats3.title('Classes per Day')
@@ -337,28 +364,25 @@ class MainView(tk.Frame):
         header = ["Days", "Number of Courses Booked"]
         excel_data_df = pd.read_excel(self.stats_file, sheet_name="Stat3")
         data = excel_data_df.values.tolist()
-        print(data)
-        for row_index in range(len(data)):
+        for row_index in range(len(data) + 1):
             tk.Grid.rowconfigure(frame, row_index, weight=1)
             for col_index in range(len(header)):
+                color = BACKGROUND
+                fcolor = 'black'
                 tk.Grid.columnconfigure(frame, col_index, weight=1)
                 if row_index == 0:
-                    color = BACKGROUND
-                    fcolor = 'black'
-                    if col_index % 2 == 0:
-                        color = 'black'
-                        fcolor = 'white'
-                    else:
-                        color = 'white'
+                    color = 'black'
+                    fcolor = 'white'
                     tk.Label(frame, text=header[col_index], fg=fcolor, bg=color).grid(row=row_index, column=col_index,
-                                                                                      sticky=tk.N + tk.S, padx=5,
-                                                                                      pady=5)
+                                                                                      sticky=tk.N + tk.S + tk.E + tk.W,
+                                                                                      padx=5, pady=5)
                 else:
-                    tk.Label(frame, text=data[row_index][col_index], fg=fcolor, bg=color).grid(row=row_index,
-                                                                                               column=col_index,
-                                                                                               sticky=tk.N + tk.S,
-                                                                                               padx=5, pady=5)
+                    tk.Label(frame, text=data[row_index - 1][col_index], fg=fcolor, bg=color).grid(row=row_index,
+                                                                                                   column=col_index,
+                                                                                                   sticky=tk.N + tk.S,
+                                                                                                   padx=5, pady=5)
 
+    # Creates a window containing raw data of classed booked per room per time slot
     def stat4_out(self):
         self.stats4 = tk.Toplevel(self.stats, bg=BACKGROUND)
         self.stats4.title('Classes booked per Room and Time')
@@ -366,15 +390,20 @@ class MainView(tk.Frame):
         scrollbar.pack(side="right", fill=tk.Y, expand=False)
         listbox = tk.Listbox(self.stats4, yscrollcommand=scrollbar.set, bg=BACKGROUND)
 
-        header = ["Days/Time", "Classroom", "Number of Courses Booked"]
+        header = ["Time", "Classroom", "Number of Courses Booked"]
         excel_data_df = pd.read_excel(self.stats_file, sheet_name="Stat4")
         data = excel_data_df.values.tolist()
         data.insert(0, header)
+
         for line in data:
             temp_line = ""
-            for val in line:
-                temp_line = temp_line + str(val)
-                spaces = 19 - len(str(val))
+            for val in range(len(line)):
+                temp_line = temp_line + str(line[val])
+                if val == 1:
+                    chars = 37
+                else:
+                    chars = 11
+                spaces = chars - len(str(line[val]))
                 if spaces < 0:
                     temp_line = temp_line
                 else:
@@ -415,6 +444,7 @@ if __name__ == "__main__":
     root.title('Main Menu')
     root.configure(bg=BACKGROUND)
 
+    # Create entry window
     entry = tk.Toplevel(bg=BACKGROUND)
     entry.protocol("WM_DELETE_WINDOW", on_closing)
     entry.title('Start Up')
@@ -457,11 +487,9 @@ if __name__ == "__main__":
     button1.grid(row=3, column=4, sticky=tk.E + tk.W, padx=10, pady=5)
     button2.grid(row=3, column=5, sticky=tk.E + tk.W, padx=10, pady=5, ipadx=10)
     root.withdraw()
-    # bg_frame = GradientFrame(root, from_color="#000000", to_color="#E74C3C", height=100)
 
+    # Create main menu window
     main = MainView()
-    # main=tk.Frame(root,bg=BACKGROUND)
-    # main_view(root)
     root.wm_geometry("600x600")
     main.pack(side="top", fill="both", expand=True)
     root.mainloop()
